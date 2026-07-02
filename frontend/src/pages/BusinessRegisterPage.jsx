@@ -1,7 +1,7 @@
-export default function LoginPage() {
+export default function BusinessRegisterPage() {
   return (
     <div className="min-h-screen flex items-center justify-center text-4xl font-bold">
-      Business Register Page
+      Business Registration
     </div>
   );
 }
