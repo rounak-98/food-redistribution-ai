@@ -2,6 +2,7 @@ from fastapi import FastAPI
 
 from app.database.database import Base, engine
 from app.models.user import User
+from app.models.business import Business
 
 # Create all database tables
 Base.metadata.create_all(bind=engine)
