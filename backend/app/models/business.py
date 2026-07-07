@@ -25,11 +25,20 @@ class Business(Base):
 
     fssai_number = Column(String(50))
 
+    # NEW
+    gst_number = Column(String(30))
+
     phone = Column(String(20), nullable=False)
+
+    # NEW
+    address = Column(String(255), nullable=False)
 
     city = Column(String(50), nullable=False)
 
     state = Column(String(50), nullable=False)
+
+    # NEW
+    pincode = Column(String(10), nullable=False)
 
     created_at = Column(
         DateTime(timezone=True),

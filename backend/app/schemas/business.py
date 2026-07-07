@@ -13,8 +13,11 @@ class BusinessRegisterRequest(BaseModel):
     business_type: str
     owner_name: str
     fssai_number: str | None = None
+    gst_number: str | None = None
 
-    # Contact
+    # Contact Information
     phone: str
+    address: str
     city: str
     state: str
+    pincode: str
