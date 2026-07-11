@@ -1,6 +1,11 @@
-export default function QuickActionCard({ title, icon }) {
+import { useNavigate } from "react-router-dom";
+
+export default function QuickActionCard({ title, icon, path }) {
+  const navigate = useNavigate();
+
   return (
     <button
+      onClick={() => path && navigate(path)}
       className="bg-white rounded-2xl shadow-md p-6 hover:bg-green-50 hover:shadow-lg transition text-left w-full"
     >
       <div className="text-4xl mb-3">

@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 
 from app.models.user import User
 from app.models.business import Business
-from app.auth.security import hash_password
+from app.auth.security import hash_password, verify_password
 
 
 def register_business(db: Session, data):
@@ -41,8 +41,43 @@ def register_business(db: Session, data):
         state=data.state,
     )
 
+
+    
     db.add(business)
     db.commit()
     db.refresh(business)
 
     return business
+
+
+
+def login_business(db: Session, email: str, password: str):
+
+    # Find user by email
+    user = (
+        db.query(User)
+        .filter(User.email == email)
+        .first()
+    )
+
+    if not user:
+        raise ValueError("Invalid email or password")
+
+    # Verify password
+    if not verify_password(password, user.password_hash):
+        raise ValueError("Invalid email or password")
+
+    # Find business details
+    business = (
+        db.query(Business)
+        .filter(Business.user_id == user.id)
+        .first()
+    )
+
+    return {
+        "user": user,
+        "business": business
+    }
+
+   
+

@@ -1,5 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { loginUser } from "../services/authService";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -7,13 +8,32 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  function handleLogin(e) {
+  async function handleLogin(e) {
     e.preventDefault();
 
-    // Temporary login for demo
-    navigate("/dashboard/business");
-  }
+    try {
 
+        const response = await loginUser({
+            email,
+            password,
+        });
+
+        localStorage.setItem(
+            "user",
+            JSON.stringify(response)
+        );
+
+        navigate("/dashboard/business");
+
+    } catch (err) {
+
+        alert(
+            err.response?.data?.detail ||
+            "Login Failed"
+        );
+
+    }
+}
   return (
     <div className="min-h-screen bg-slate-100 flex items-center justify-center px-4">
 

@@ -1,30 +1,66 @@
+import { useEffect, useState } from "react";
 import StatCard from "../components/dashboard/StatCard";
 import QuickActionCard from "../components/dashboard/QuickActionCard";
 import AIInsightCard from "../components/dashboard/AIInsightCard";
+import { getDashboardStats, getBusinessDonations } from "../services/donationService";
+import DashboardLayout from "../components/dashboard/DashboardLayout";
+import { getInventory } from "../services/inventoryService";
 
 export default function BusinessDashboard() {
+
+  const storedUser = JSON.parse(localStorage.getItem("user"));
+  const businessId = storedUser?.business?.id;
+  const [inventory, setInventory] = useState([]);
+  const [donations, setDonations] = useState([]);
+  const [stats, setStats] = useState({
+    total_donations: 0,
+    available_donations: 0,
+    completed_pickups: 0,
+  });
+
+  useEffect(() => {
+    loadStats();
+    loadInventory();
+    loadDonations();
+  }, []);
+
+  async function loadStats() {
+    try {
+      const data = await getDashboardStats(businessId);
+      setStats(data);
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
+  async function loadInventory() {
+    try {
+      const data = await getInventory(businessId);
+      setInventory(data);
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
+  async function loadDonations() {
+    try {
+      const data = await getBusinessDonations(businessId);
+      setDonations(data);
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
+  const data = JSON.parse(localStorage.getItem("user"));
+
+  const user = data?.user;
+  const business = data?.business;
+
   return (
-    <div className="min-h-screen bg-slate-100">
+    <DashboardLayout>
 
-      {/* Header */}
-      <header className="bg-green-700 text-white shadow">
-        <div className="max-w-7xl mx-auto px-8 py-6 flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold">
-              FoodBridge AI Dashboard
-            </h1>
-            <p className="mt-2 text-green-100">
-              Welcome back, ABC Restaurant 👋
-            </p>
-          </div>
 
-          <div className="bg-green-600 px-4 py-2 rounded-full font-semibold">
-            Business
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto p-8">
+      <div className="max-w-7xl mx-auto ">
 
         {/* Stats */}
         <h2 className="text-2xl font-bold mb-6">
@@ -34,31 +70,31 @@ export default function BusinessDashboard() {
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
 
           <StatCard
-            title="Inventory Items"
-            value="28"
-            icon="📦"
+            title="Total Donations"
+            value={stats.total_donations}
+            icon="🍱"
             color="text-green-600"
           />
 
           <StatCard
-            title="Active Donations"
-            value="6"
-            icon="🍱"
+            title="Available Donations"
+            value={stats.available_donations}
+            icon="📦"
             color="text-orange-500"
           />
 
           <StatCard
-            title="Meals Donated"
-            value="1,245"
-            icon="❤️"
-            color="text-red-500"
-          />
+            title="Completed Pickups"
+            value={stats.completed_pickups}
+            icon="✅"
+            color="text-blue-500"
+/>
 
           <StatCard
             title="Partner NGOs"
             value="18"
             icon="🤝"
-            color="text-blue-500"
+            color="text-purple-500"
           />
 
         </div>
@@ -73,21 +109,25 @@ export default function BusinessDashboard() {
           <QuickActionCard
             title="Add Donation"
             icon="➕"
+            path="/donations/add"
           />
 
           <QuickActionCard
             title="Inventory"
             icon="📦"
+            path="/inventory"
           />
 
           <QuickActionCard
             title="Donation History"
             icon="📜"
+            path="/donations/history"
           />
 
           <QuickActionCard
             title="Analytics"
             icon="📈"
+            path="/analytics"
           />
 
         </div>
@@ -95,7 +135,7 @@ export default function BusinessDashboard() {
         {/* Bottom Section */}
         <div className="grid lg:grid-cols-2 gap-8 mt-12">
 
-          <AIInsightCard />
+          <AIInsightCard inventory={inventory} />
 
           <div className="bg-white rounded-2xl shadow-md p-8">
 
@@ -105,25 +145,50 @@ export default function BusinessDashboard() {
 
             <ul className="space-y-4">
 
-              <li className="flex justify-between">
-                <span>🍚 Rice</span>
-                <span>25 kg</span>
-              </li>
+              {donations.length === 0 ? (
 
-              <li className="flex justify-between">
-                <span>🍞 Bread</span>
-                <span>40 Loaves</span>
-              </li>
+                <p className="text-gray-500">
+                  No donations yet.
+                </p>
 
-              <li className="flex justify-between">
-                <span>🥗 Vegetables</span>
-                <span>15 kg</span>
-              </li>
+              ) : (
 
-              <li className="flex justify-between">
-                <span>🥛 Milk</span>
-                <span>20 Litres</span>
-              </li>
+                donations.slice(0,5).map((item) => (
+
+                  <li
+                    key={item.id}
+                    className="flex justify-between border-b pb-3"
+                  >
+
+                    <div>
+
+                      <p className="font-semibold">
+                        🍱 {item.food_name}
+                      </p>
+
+                      <p className="text-sm text-gray-500">
+                        {item.food_category}
+                      </p>
+
+                    </div>
+
+                    <div className="text-right">
+
+                      <p className="font-semibold">
+                        {item.quantity}
+                      </p>
+
+                      <span className="text-green-600 text-sm">
+                        {item.status}
+                      </span>
+
+                    </div>
+
+                  </li>
+
+                ))
+
+              )}
 
             </ul>
 
@@ -131,8 +196,8 @@ export default function BusinessDashboard() {
 
         </div>
 
-      </main>
+      </div>
 
-    </div>
+    </DashboardLayout>
   );
 }
