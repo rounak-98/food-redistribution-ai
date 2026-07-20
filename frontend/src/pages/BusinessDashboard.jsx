@@ -19,8 +19,7 @@ import {
 
 export default function BusinessDashboard() {
 
-  const storedUser = JSON.parse(localStorage.getItem("user"));
-  const businessId = storedUser?.business?.id;
+  
   const [inventory, setInventory] = useState([]);
   const [donations, setDonations] = useState([]);
   const [summary, setSummary] = useState(null);
@@ -31,14 +30,6 @@ export default function BusinessDashboard() {
     loadDashboardSummary();
   }, []);
 
-  async function loadStats() {
-    try {
-      const data = await getDashboardStats(businessId);
-      setStats(data);
-    } catch (err) {
-      console.log(err);
-    }
-  }
 
   async function loadDashboardSummary() {
     try {
@@ -51,7 +42,7 @@ export default function BusinessDashboard() {
 
   async function loadInventory() {
     try {
-      const data = await getInventory(businessId);
+      const data = await getInventory();
       setInventory(data);
     } catch (err) {
       console.log(err);
@@ -60,19 +51,16 @@ export default function BusinessDashboard() {
 
   async function loadDonations() {
     try {
-      const data = await getBusinessDonations(businessId);
+      const data = await getBusinessDonations();
       setDonations(data);
     } catch (err) {
       console.log(err);
     }
   }
 
-  const data = JSON.parse(localStorage.getItem("user"));
-
-  const user = data?.user;
-  const business = data?.business;
-  console.log("Inventory:", inventory);
-  console.log("Donations:", donations);
+  const user = JSON.parse(localStorage.getItem("user"));
+  const business = JSON.parse(localStorage.getItem("profile"));
+  
   return (
     <DashboardLayout>
 

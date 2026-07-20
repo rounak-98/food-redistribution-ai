@@ -2,7 +2,11 @@ from sqlalchemy.orm import Session
 
 from app.models.user import User
 from app.models.business import Business
-from app.auth.security import hash_password, verify_password
+from app.auth.security import (
+    hash_password, 
+    verify_password,
+    create_access_token,
+)
 from app.models.ngo import NGO
 
 def register_user(db: Session, data):
@@ -27,7 +31,9 @@ def register_user(db: Session, data):
     db.commit()
     db.refresh(user)
 
-    if data.role == "Business":
+    role = data.role.lower()
+
+    if role == "business":
 
         profile = Business(
             user_id=user.id,
@@ -43,7 +49,7 @@ def register_user(db: Session, data):
             state=data.state,
         )
 
-    elif data.role == "NGO":
+    elif role == "ngo":
 
         profile = NGO(
             user_id=user.id,
@@ -125,7 +131,9 @@ def login_user(db: Session, email: str, password: str):
         raise ValueError("Invalid email or password")
 
     # Find profile based on user role
-    if user.role == "Business":
+    role = user.role.lower()
+
+    if role == "business":
 
         profile = (
             db.query(Business)
@@ -133,7 +141,7 @@ def login_user(db: Session, email: str, password: str):
             .first()
         )
 
-    elif user.role == "NGO":
+    elif role == "ngo":
 
         profile = (
             db.query(NGO)
@@ -145,7 +153,16 @@ def login_user(db: Session, email: str, password: str):
         profile = None
 
 
+    # Generate JWT access token
+    access_token = create_access_token(
+        data={
+            "sub": str(user.id),
+            "role": user.role
+        }
+    )
+
     return {
+        "access_token": access_token,
         "user": user,
         "profile": profile
     }

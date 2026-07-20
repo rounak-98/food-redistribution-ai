@@ -5,17 +5,17 @@ export const createDonation = async (data) => {
   return response.data;
 };
 
-export const getBusinessDonations = async (businessId) => {
+export const getBusinessDonations = async () => {
   const response = await api.get(
-    `/api/donations/business/${businessId}`
+    "/api/donations/my"
   );
 
   return response.data;
 };
 
-export const getDashboardStats = async (businessId) => {
+export const getDashboardStats = async () => {
   const response = await api.get(
-    `/api/donations/dashboard/${businessId}`
+    "/api/donations/dashboard/my"
   );
 
   return response.data;

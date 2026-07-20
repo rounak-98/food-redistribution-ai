@@ -5,12 +5,9 @@ import { getDashboardStats } from "../services/donationService";
 
 export default function ProfilePage() {
 
-  const storedUser = JSON.parse(localStorage.getItem("user"));
+  const user = JSON.parse(localStorage.getItem("user"));
+  const business = JSON.parse(localStorage.getItem("profile"));
 
-  const user = storedUser?.user;
-  const business = storedUser?.business;
-
-  const businessId = business?.id;
 
   const [inventory, setInventory] = useState([]);
   const [stats, setStats] = useState({});
@@ -21,10 +18,10 @@ export default function ProfilePage() {
 
   async function loadData() {
 
-    const inventoryData = await getInventory(businessId);
+    const inventoryData = await getInventory();
     setInventory(inventoryData);
 
-    const dashboardStats = await getDashboardStats(businessId);
+    const dashboardStats = await getDashboardStats();
     setStats(dashboardStats);
 
   }
@@ -125,6 +122,8 @@ export default function ProfilePage() {
             <button
                 onClick={() => {
                     localStorage.removeItem("user");
+                    localStorage.removeItem("profile");
+                    localStorage.removeItem("token");
                     window.location.href = "/login";
                 }}
                 className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-xl"

@@ -1,8 +1,8 @@
 import api from "./api";
 
-export const getInventory = async (businessId) => {
+export const getInventory = async () => {
   const response = await api.get(
-    `/api/inventory/${businessId}`
+    "/api/inventory/my"
   );
 
   return response.data;

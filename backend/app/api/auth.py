@@ -2,10 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database.database import get_db
-from app.schemas.business import BusinessRegisterRequest
+from app.schemas.business import RegisterRequest
 from app.schemas.login import LoginRequest
-from app.schemas.ngo import NGORegisterRequest
-from app.services.auth_service import register_ngo
 from app.services.auth_service import (
     register_user,
     login_user,
@@ -18,7 +16,7 @@ router = APIRouter(
 
 @router.post("/register")
 def register(
-    data: BusinessRegisterRequest,
+    data: RegisterRequest,
     db: Session = Depends(get_db)
 ):
     try:
@@ -45,11 +43,13 @@ def login(
             data.email,
             data.password
         )
+        
 
-        if result["user"].role == "Business":
-
+        if result["user"].role == "business":
             return {
                 "message": "Login successful",
+                "access_token": result["access_token"],
+                "token_type": "bearer",
                 "user": {
                     "id": result["user"].id,
                     "name": result["user"].name,
@@ -66,10 +66,11 @@ def login(
                 }
             }
 
-        elif result["user"].role == "NGO":
-
+        elif result["user"].role == "ngo":
             return {
                 "message": "Login successful",
+                "access_token": result["access_token"],
+                "token_type": "bearer",
                 "user": {
                     "id": result["user"].id,
                     "name": result["user"].name,
@@ -93,20 +94,3 @@ def login(
         )
     
 
-@router.post("/register/ngo")
-def register_ngo_api(
-    data: NGORegisterRequest,
-    db: Session = Depends(get_db)
-):
-    try:
-        register_ngo(db, data)
-
-        return {
-            "message": "NGO registered successfully"
-        }
-
-    except ValueError as e:
-        raise HTTPException(
-            status_code=400,
-            detail=str(e)
-        )

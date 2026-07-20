@@ -1,21 +1,26 @@
 from pydantic import BaseModel, EmailStr
 
 
-class BusinessRegisterRequest(BaseModel):
+class RegisterRequest(BaseModel):
     # User Information
     name: str
     email: EmailStr
     password: str
-    role: str = "business"
+    role: str
 
-    # Business Information
-    business_name: str
-    business_type: str
-    owner_name: str
+    # Business Fields
+    business_name: str | None = None
+    business_type: str | None = None
+    owner_name: str | None = None
     fssai_number: str | None = None
     gst_number: str | None = None
 
-    # Contact Information
+    # NGO Fields
+    ngo_name: str | None = None
+    registration_number: str | None = None
+    contact_person: str | None = None
+
+    # Common Contact Information
     phone: str
     address: str
     city: str

@@ -4,6 +4,9 @@ from sqlalchemy.orm import Session
 from app.database.database import get_db
 from app.schemas.donation import DonationCreate
 from app.services.donation_service import ( create_donation, get_business_donations, get_dashboard_stats,)
+from app.auth.security import get_current_user
+from app.models.user import User
+from app.models.business import Business
 
 router = APIRouter(
     prefix="/api/donations",
@@ -32,9 +35,51 @@ def get_donations(
 
     return donations
 
+@router.get("/my")
+def get_my_donations(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+
+    business = (
+        db.query(Business)
+        .filter(Business.user_id == current_user.id)
+        .first()
+    )
+
+    if business is None:
+        return []
+
+    return get_business_donations(
+        db,
+        business.id
+    )
+
+@router.get("/dashboard/my")
+def my_dashboard_stats(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+
+    business = (
+        db.query(Business)
+        .filter(Business.user_id == current_user.id)
+        .first()
+    )
+
+    if business is None:
+        return {}
+
+    return get_dashboard_stats(
+        db,
+        business.id
+    )
+
+
 @router.get("/dashboard/{business_id}")
 def dashboard_stats(
     business_id: int,
     db: Session = Depends(get_db)
 ):
     return get_dashboard_stats(db, business_id)
+

@@ -2,6 +2,9 @@ from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
 import csv
 import io
 from datetime import datetime, date
+from app.auth.security import get_current_user
+from app.models.user import User
+from app.models.business import Business
 
 
 from app.models.inventory import Inventory
@@ -31,7 +34,27 @@ def create_inventory(
         db,
         data
     )
+@router.get("/my")
+def my_inventory(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
 
+    business = (
+        db.query(Business)
+        .filter(Business.user_id == current_user.id)
+        .first()
+    )
+
+    if business is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Business profile not found."
+        )
+    return get_inventory(
+        db,
+        business.id
+    )
 
 @router.get("/{business_id}")
 def inventory_list(
@@ -146,3 +169,4 @@ def delete_inventory_item(
     return {
         "message": "Inventory item discarded successfully."
     }
+

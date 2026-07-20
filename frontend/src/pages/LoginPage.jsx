@@ -18,18 +18,43 @@ export default function LoginPage() {
             password,
         });
 
+        console.log("LOGIN RESPONSE:", response);
+
+        // Store JWT
         localStorage.setItem(
-            "user",
-            JSON.stringify(response)
+          "token",
+          response.access_token
         );
 
-        navigate("/dashboard/business");
+        // Store logged-in user information
+        localStorage.setItem(
+          "user",
+          JSON.stringify(response.user)
+        );
 
+        // Store profile information (Business/NGO)
+        if (response.business) {
+          localStorage.setItem(
+            "profile",
+            JSON.stringify(response.business)
+          );
+        }
+
+        if (response.ngo) {
+          localStorage.setItem(
+            "profile",
+            JSON.stringify(response.ngo)
+          );
+    }
+
+        if (response.user.role === "business") {
+          navigate("/dashboard/business");
+        } else if (response.user.role === "ngo") {
+          navigate("/dashboard/ngo");
+        }
     } catch (err) {
 
-        alert(
-            err.response?.data?.detail ||
-            "Login Failed"
+        alert(err.response?.data?.detail || err.message || "Login Failed"
         );
 
     }
