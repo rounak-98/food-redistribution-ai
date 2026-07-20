@@ -35,3 +35,21 @@ export const uploadInventoryCSV = async (businessId, file) => {
 
   return response.data;
 };
+
+export const deleteInventoryItem = async (itemId) => {
+  const response = await api.delete(
+    `/api/inventory/${itemId}`
+  );
+
+  return response.data;
+};
+
+export async function getProductByBarcode(barcode) {
+    const response = await fetch(`http://127.0.0.1:8000/barcode/${barcode}`);
+
+    if (!response.ok) {
+        throw new Error("Product not found");
+    }
+
+    return await response.json();
+}

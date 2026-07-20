@@ -1,10 +1,14 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import DashboardLayout from "../components/dashboard/DashboardLayout";
-import { addInventory } from "../services/inventoryService";
+import {
+  addInventory,
+  getProductByBarcode
+} from "../services/inventoryService";
 
 export default function AddInventoryPage() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const storedUser = JSON.parse(localStorage.getItem("user"));
   const businessId = storedUser?.business?.id;
@@ -18,6 +22,7 @@ export default function AddInventoryPage() {
     quantity: "",
     unit: "",
     barcode: "",
+    brand: "",
     manufacturing_date: "",
     expiry_date: "",
     purchase_date: "",
@@ -32,6 +37,46 @@ export default function AddInventoryPage() {
       [e.target.name]: e.target.value,
     });
   }
+  
+  const fetchProductByBarcode = async (barcode) => {
+
+  if (!barcode.trim()) return;
+
+  try {
+
+    const product = await getProductByBarcode(barcode);
+
+    setFormData(prev => ({
+      ...prev,
+      barcode: product.barcode,
+      product_name: product.product_name || "",
+      brand: product.brand || "",
+      category: product.category || "",
+      unit: prev.unit || "Packets",
+      image_url: product.image || ""
+    }));
+
+  } catch (err) {
+
+    console.log(err);
+
+    // Keep barcode but don't clear user's existing values
+    setFormData(prev => ({
+      ...prev,
+      barcode
+    }));
+
+  }
+};
+
+  useEffect(() => {
+
+    if (location.state?.barcode) {
+        fetchProductByBarcode(location.state.barcode);
+    }
+
+  }, [location.state]);
+
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -62,6 +107,19 @@ export default function AddInventoryPage() {
           Add Inventory Item
         </h1>
 
+
+        {formData.image_url && (
+          <div className="flex justify-center mb-8">
+            <div className="bg-gray-50 rounded-2xl p-4 shadow">
+              <img
+                src={formData.image_url}
+                alt={formData.product_name}
+                className="h-44 object-contain"
+              />
+            </div>
+          </div>
+ )}
+
         <form
           onSubmit={handleSubmit}
           className="grid md:grid-cols-2 gap-6"
@@ -69,32 +127,25 @@ export default function AddInventoryPage() {
 
           <input
             name="product_name"
+            value={formData.product_name}
             placeholder="Product Name"
-            className="border rounded-xl p-4"
+            className="border rounded-xl p-4 h-14 w-full"
             onChange={handleChange}
             required
+          />
+          <input
+            name="brand"
+            value={formData.brand}
+            placeholder="Brand"
+            className="border rounded-xl p-4 h-14 w-full"
+            onChange={handleChange}
           />
 
           <input
             name="category"
+            value={formData.category}
             placeholder="Category"
-            className="border rounded-xl p-4"
-            onChange={handleChange}
-            required
-          />
-
-          <input
-            name="quantity"
-            placeholder="Quantity"
-            className="border rounded-xl p-4"
-            onChange={handleChange}
-            required
-          />
-
-          <input
-            name="unit"
-            placeholder="Unit (kg, L, packets)"
-            className="border rounded-xl p-4"
+            className="border rounded-xl p-4 h-14 w-full"
             onChange={handleChange}
             required
           />
@@ -102,9 +153,46 @@ export default function AddInventoryPage() {
           <input
             name="barcode"
             placeholder="Barcode"
-            className="border rounded-xl p-4"
+            value={formData.barcode}
+            className="border rounded-xl p-4 h-14 w-full"
             onChange={handleChange}
+            onBlur={(e) => fetchProductByBarcode(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                fetchProductByBarcode(formData.barcode);
+              }
+            }}
           />
+
+          <input
+            name="quantity"
+            placeholder="Quantity"
+            value={formData.quantity}
+            className="border rounded-xl p-4 h-14 w-full"
+            onChange={handleChange}
+            required
+          />
+
+          <select
+            name="unit"
+            value={formData.unit}
+            placeholder="Unit (kg, L, packets)"
+            className="border rounded-xl p-4 h-14 w-full"
+            onChange={handleChange}
+            required
+          >
+            <option value="">Select Unit</option>
+            <option value="packets">Packets</option>
+            <option value="kg">Kg</option>
+            <option value="g">Grams</option>
+            <option value="L">Litres</option>
+            <option value="ml">Millilitres</option>
+            <option value="pieces">Pieces</option>
+            <option value="boxes">Boxes</option>
+          </select>
+
+          
 
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -114,7 +202,8 @@ export default function AddInventoryPage() {
             <input
                 type="date"
                 name="manufacturing_date"
-                className="border rounded-xl p-4 w-full"
+                value={formData.manufacturing_date}
+                className="border rounded-xl p-4 h-14 w-full"
                 onChange={handleChange}
             />
          </div>
@@ -127,7 +216,8 @@ export default function AddInventoryPage() {
             <input
                 type="date"
                 name="expiry_date"
-                className="border rounded-xl p-4 w-full"
+                value={formData.expiry_date}
+                className="border rounded-xl p-4 h-14 w-full"
                 onChange={handleChange}
                 required
             />
@@ -140,30 +230,39 @@ export default function AddInventoryPage() {
 
             <input
                 type="date"
+                value={formData.purchase_date}
                 name="purchase_date"
-                className="border rounded-xl p-4 w-full"
+                className="border rounded-xl p-4 h-14 w-full"
                 onChange={handleChange}
             />
          </div>
-
+         <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            Supplier
+          </label>
           <input
             name="supplier"
+            value={formData.supplier}
             placeholder="Supplier"
-            className="border rounded-xl p-4"
+            className="border rounded-xl p-4 h-14 w-full"
+            onChange={handleChange}
+          />
+          </div>
+          <input
+            name="storage_location"
+            value={formData.storage_location}
+            placeholder="Storage Location"
+            className="border rounded-xl p-4 h-14 w-full"
             onChange={handleChange}
           />
 
-          <input
-            name="storage_location"
-            placeholder="Storage Location"
-            className="border rounded-xl p-4"
-            onChange={handleChange}
-          />
+          
 
           <input
             name="image_url"
+            value={formData.image_url}
             placeholder="Image URL (optional)"
-            className="border rounded-xl p-4 md:col-span-2"
+            className="border rounded-xl p-4 h-14 w-full"
             onChange={handleChange}
           />
 

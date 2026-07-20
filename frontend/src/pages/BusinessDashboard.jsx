@@ -1,10 +1,21 @@
 import { useEffect, useState } from "react";
-import StatCard from "../components/dashboard/StatCard";
+import { getDashboardSummary } from "../services/dashboardService";
 import QuickActionCard from "../components/dashboard/QuickActionCard";
 import AIInsightCard from "../components/dashboard/AIInsightCard";
 import { getDashboardStats, getBusinessDonations } from "../services/donationService";
 import DashboardLayout from "../components/dashboard/DashboardLayout";
 import { getInventory } from "../services/inventoryService";
+import InventoryPieChart from "../components/dashboard/InventoryPieChart";
+import CategoryBarChart from "../components/dashboard/CategoryBarChart";
+import DonationTrendChart from "../components/dashboard/DonationTrendChart";
+import KPIStatCard from "../components/dashboard/KPIStatCard";
+import {
+  FaBoxOpen,
+  FaLeaf,
+  FaTrashAlt,
+  FaHandsHelping,
+  FaTruck,
+} from "react-icons/fa";
 
 export default function BusinessDashboard() {
 
@@ -12,22 +23,27 @@ export default function BusinessDashboard() {
   const businessId = storedUser?.business?.id;
   const [inventory, setInventory] = useState([]);
   const [donations, setDonations] = useState([]);
-  const [stats, setStats] = useState({
-    total_donations: 0,
-    available_donations: 0,
-    completed_pickups: 0,
-  });
-
+  const [summary, setSummary] = useState(null);
+  
   useEffect(() => {
-    loadStats();
     loadInventory();
     loadDonations();
+    loadDashboardSummary();
   }, []);
 
   async function loadStats() {
     try {
       const data = await getDashboardStats(businessId);
       setStats(data);
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
+  async function loadDashboardSummary() {
+    try {
+      const data = await getDashboardSummary();
+      setSummary(data);
     } catch (err) {
       console.log(err);
     }
@@ -55,7 +71,8 @@ export default function BusinessDashboard() {
 
   const user = data?.user;
   const business = data?.business;
-
+  console.log("Inventory:", inventory);
+  console.log("Donations:", donations);
   return (
     <DashboardLayout>
 
@@ -67,38 +84,81 @@ export default function BusinessDashboard() {
           Dashboard Overview
         </h2>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
 
-          <StatCard
+          <KPIStatCard
             title="Total Donations"
-            value={stats.total_donations}
-            icon="🍱"
-            color="text-green-600"
+            value={summary?.total_donations ?? 0}
+            icon={<FaHandsHelping />}
+            color="green"
+            change="+12%"
+            subtitle="All donations"
           />
 
-          <StatCard
+          <KPIStatCard
             title="Available Donations"
-            value={stats.available_donations}
-            icon="📦"
-            color="text-orange-500"
+            value={summary?.available_donations ?? 0}
+            icon={<FaBoxOpen />}
+            color="orange"
+            change="+5%"
+            subtitle="Ready for pickup"
           />
 
-          <StatCard
-            title="Completed Pickups"
-            value={stats.completed_pickups}
-            icon="✅"
-            color="text-blue-500"
-/>
+          <KPIStatCard
+            title="Inventory Items"
+            value={summary?.inventory_items ?? 0}
+            icon={<FaBoxOpen />}
+            color="blue"
+            change="+8%"
+            subtitle="Currently stored"
+          />
 
-          <StatCard
+          <KPIStatCard
+            title="Completed Pickups"
+            value={summary?.completed_pickups ?? 0}
+            icon={<FaTruck />}
+            color="green"
+            change="+18%"
+            subtitle="Successfully delivered"
+          />
+
+         <KPIStatCard
+            title="Food Saved (kg)"
+            value={summary?.food_saved_kg ?? 0}
+            icon={<FaLeaf />}
+            color="orange"
+            change="+15%"
+            subtitle="Estimated"
+          />
+
+          <KPIStatCard
+            title="Waste Prevented"
+            value={summary?.waste_prevented_kg ?? 0}
+            icon={<FaTrashAlt />}
+            color="red"
+            change="+5%"
+            subtitle="AI Estimate"
+          />
+
+          <KPIStatCard
             title="Partner NGOs"
-            value="18"
-            icon="🤝"
-            color="text-purple-500"
+            value={summary?.partner_ngos ?? 0}
+            icon={"🤝"}
+            color="blue"
+            change="+2"
+            subtitle="Active partners"
+          />
+
+          <KPIStatCard
+            title="AI Health Score"
+            value={summary?.ai_health_score ?? 0}
+            icon={"🤖"}
+            color="green"
+            change="+4%"
+            subtitle="Inventory quality"
           />
 
         </div>
-
         {/* Quick Actions */}
         <h2 className="text-2xl font-bold mt-12 mb-6">
           Quick Actions
@@ -196,6 +256,21 @@ export default function BusinessDashboard() {
 
         </div>
 
+
+        <div className="grid lg:grid-cols-2 gap-8 mt-12">
+
+          <InventoryPieChart inventory={inventory} />
+
+          <CategoryBarChart inventory={inventory} />
+
+        </div>
+
+        <div className="mt-10">
+
+          <DonationTrendChart donations={donations} />
+
+        </div>
+        
       </div>
 
     </DashboardLayout>

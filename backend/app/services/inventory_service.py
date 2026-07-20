@@ -60,9 +60,24 @@ def add_inventory_item(db: Session, data):
 
 def get_inventory(db: Session, business_id: int):
 
-    return (
+    items = (
         db.query(Inventory)
         .filter(Inventory.business_id == business_id)
         .order_by(Inventory.created_at.desc())
         .all()
     )
+
+    updated = False
+
+    for item in items:
+
+        new_status = calculate_status(item.expiry_date)
+
+        if item.status != new_status:
+            item.status = new_status
+            updated = True
+
+    if updated:
+        db.commit()
+
+    return items

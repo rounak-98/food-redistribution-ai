@@ -3,6 +3,7 @@ import csv
 import io
 from datetime import datetime, date
 
+
 from app.models.inventory import Inventory
 
 from sqlalchemy.orm import Session
@@ -120,4 +121,28 @@ async def upload_inventory_csv(
 
     return {
         "message": f"{imported} inventory items imported successfully."
+    }
+
+@router.delete("/{item_id}")
+def delete_inventory_item(
+    item_id: int,
+    db: Session = Depends(get_db)
+):
+    item = (
+        db.query(Inventory)
+        .filter(Inventory.id == item_id)
+        .first()
+    )
+
+    if not item:
+        raise HTTPException(
+            status_code=404,
+            detail="Inventory item not found."
+        )
+
+    db.delete(item)
+    db.commit()
+
+    return {
+        "message": "Inventory item discarded successfully."
     }

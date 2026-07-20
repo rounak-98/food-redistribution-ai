@@ -5,8 +5,8 @@ from sqlalchemy.orm import relationship
 from app.database.database import Base
 
 
-class Business(Base):
-    __tablename__ = "businesses"
+class NGO(Base):
+    __tablename__ = "ngos"
 
     id = Column(Integer, primary_key=True, index=True)
 
@@ -17,27 +17,22 @@ class Business(Base):
         unique=True
     )
 
-    business_name = Column(String(150), nullable=False)
+    ngo_name = Column(String(150), nullable=False)
 
-    business_type = Column(String(50), nullable=False)
+    registration_number = Column(String(100))
 
-    owner_name = Column(String(100), nullable=False)
-
-    fssai_number = Column(String(50))
-
-    # NEW
-    gst_number = Column(String(30))
+    contact_person = Column(String(100), nullable=False)
 
     phone = Column(String(20), nullable=False)
 
-    # NEW
+    email = Column(String(100))
+
     address = Column(String(255), nullable=False)
 
     city = Column(String(50), nullable=False)
 
     state = Column(String(50), nullable=False)
 
-    # NEW
     pincode = Column(String(10), nullable=False)
 
     latitude = Column(String(30))

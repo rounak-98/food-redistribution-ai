@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
 import DashboardLayout from "../components/dashboard/DashboardLayout";
-import { getInventory } from "../services/inventoryService";
+import {
+    getInventory,
+    uploadInventoryCSV,
+    deleteInventoryItem
+} from "../services/inventoryService";
 import { useNavigate } from "react-router-dom";
-import { uploadInventoryCSV } from "../services/inventoryService";
 
 export default function InventoryPage() {
     const navigate = useNavigate();
@@ -67,6 +70,33 @@ export default function InventoryPage() {
     }
 
 };
+
+const handleDiscard = async (itemId) => {
+
+    const confirmDelete = window.confirm(
+        "Are you sure you want to discard this expired product?"
+    );
+
+    if (!confirmDelete) return;
+
+    try {
+
+        const result = await deleteInventoryItem(itemId);
+
+        alert(result.message);
+
+        loadInventory();
+
+    } catch (err) {
+
+        alert(
+            err.response?.data?.detail ||
+            "Failed to discard item."
+        );
+
+    }
+
+};
   return (
     <DashboardLayout>
 
@@ -115,7 +145,10 @@ export default function InventoryPage() {
             </button>
             </>
 
-            <button className="bg-orange-500 hover:bg-orange-600 text-white px-5 py-3 rounded-xl font-semibold">
+            <button
+              onClick={() => navigate("/inventory/scan")}
+              className="bg-orange-500 hover:bg-orange-600 text-white px-5 py-3 rounded-xl font-semibold"
+            >
               Scan Barcode
             </button>
 
@@ -236,8 +269,8 @@ export default function InventoryPage() {
                   {item.status === "Expired" ? (
 
                     <button
-                      disabled
-                      className="bg-gray-400 text-white px-4 py-2 rounded-lg cursor-not-allowed"
+                      onClick={() => handleDiscard(item.id)}
+                      className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg"
                     >
                       Discard
                     </button>

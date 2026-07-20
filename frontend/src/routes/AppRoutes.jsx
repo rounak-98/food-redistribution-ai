@@ -22,6 +22,13 @@ import InsightsPage from "../pages/InsightsPage";
 import ProfilePage from "../pages/ProfilePage";
 import AlertsPage from "../pages/AlertsPage";
 
+import AvailableDonationsPage from "../pages/AvailableDonationsPage";
+import AcceptedDonationsPage from "../pages/AcceptedDonationsPage";
+import NGOHistoryPage from "../pages/NGOHistoryPage";
+import NGOProfilePage from "../pages/NGOProfilePage";
+import DonationDetailsPage from "../pages/DonationDetailsPage";
+import BarcodeScanner from "../pages/BarcodeScanner";
+
 export default function AppRoutes() {
   return (
     <BrowserRouter>
@@ -103,6 +110,36 @@ export default function AppRoutes() {
         <Route
           path="/alerts"
           element={<AlertsPage />}
+        />
+
+        {/* NGO Pages */}
+
+        <Route
+          path="/ngo/donations"
+          element={<AvailableDonationsPage />}
+        />
+
+        <Route
+          path="/ngo/accepted"
+          element={<AcceptedDonationsPage />}
+        />
+
+        <Route
+          path="/ngo/history"
+          element={<NGOHistoryPage />}
+        />
+
+        <Route
+          path="/ngo/profile"
+          element={<NGOProfilePage />}
+        />
+        <Route
+          path="/ngo/donation-details/:id"
+          element={<DonationDetailsPage />}
+        />
+        <Route
+          path="/inventory/scan"
+          element={<BarcodeScanner />}
         />
       </Routes>
     </BrowserRouter>
