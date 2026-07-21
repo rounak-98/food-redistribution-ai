@@ -1,4 +1,4 @@
-import { useNavigate,useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import NGODashboardLayout from "../components/dashboard/NGODashboardLayout";
 import { useEffect, useState } from "react";
 import { getDonationDetails, acceptDonation } from "../services/ngoService";
@@ -11,15 +11,15 @@ export default function DonationDetailsPage() {
 
     try {
 
-        const data = await getDonationDetails(id);
+      const data = await getDonationDetails(id);
 
-        console.log("Donation Details:", data);
+      console.log("Donation Details:", data);
 
-        setDonation(data);
+      setDonation(data);
 
     } catch (error) {
 
-        console.error("Error fetching donation:", error);
+      console.error("Error fetching donation:", error);
 
     }
 
@@ -27,14 +27,16 @@ export default function DonationDetailsPage() {
 
   const handleAcceptDonation = async () => {
     try {
-        await acceptDonation(id);
+      await acceptDonation(id);
 
-        alert("Donation accepted successfully!");
+      alert("Donation accepted successfully!");
 
-        navigate("/ngo/donations", { replace: true });
+      navigate("/ngo/donations", { replace: true });
     } catch (error) {
-        console.error(error);
-        alert("Failed to accept donation.");
+      console.log("Status:", error.response?.status);
+      console.log("Data:", error.response?.data);
+      console.log("Headers:", error.response?.headers);
+      alert("Failed to accept donation.");
     }
   };
 
@@ -56,9 +58,9 @@ export default function DonationDetailsPage() {
   };
   if (!donation) {
     return (
-        <div className="flex justify-center items-center h-screen text-xl">
-            Loading...
-        </div>
+      <div className="flex justify-center items-center h-screen text-xl">
+        Loading...
+      </div>
     );
   }
   return (

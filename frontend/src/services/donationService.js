@@ -20,3 +20,11 @@ export const getDashboardStats = async () => {
 
   return response.data;
 };
+
+export const getAcceptedDonations = async () => {
+  const response = await api.get(
+    "/api/ngo/donations/accepted"
+  );
+
+  return response.data;
+};

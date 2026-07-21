@@ -23,6 +23,12 @@ class Donation(Base):
         nullable=False
     )
 
+    accepted_by_ngo_id = Column(
+        Integer,
+        ForeignKey("ngos.id"),
+        nullable=True
+    )
+
     food_name = Column(String(150), nullable=False)
 
     food_category = Column(String(100), nullable=False)
@@ -56,3 +62,5 @@ class Donation(Base):
     )
 
     business = relationship("Business")
+    
+    accepted_by_ngo = relationship("NGO")

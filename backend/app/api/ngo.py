@@ -4,6 +4,9 @@ from fastapi import HTTPException
 from app.database.database import get_db
 from app.models.donation import Donation
 from app.models.business import Business
+from app.auth.security import get_current_user
+from app.models.user import User
+from app.models.ngo import NGO
 
 router = APIRouter(
     prefix="/api/ngo",
@@ -20,6 +23,36 @@ def get_available_donations(db: Session = Depends(get_db)):
     )
 
     return donations
+
+@router.get("/donations/accepted")
+def get_my_accepted_donations(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+
+    ngo = (
+        db.query(NGO)
+        .filter(NGO.user_id == current_user.id)
+        .first()
+    )
+
+    if not ngo:
+        raise HTTPException(
+            status_code=404,
+            detail="NGO profile not found"
+        )
+
+    donations = (
+        db.query(Donation)
+        .filter(
+            Donation.accepted_by_ngo_id == ngo.id
+        )
+        .order_by(Donation.created_at.desc())
+        .all()
+    )
+
+    return donations
+
 @router.get("/donations/{donation_id}")
 def get_donation_details(
     donation_id: int,
@@ -60,6 +93,7 @@ def get_donation_details(
 @router.put("/donations/{donation_id}/accept")
 def accept_donation(
     donation_id: int,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
 
@@ -74,9 +108,21 @@ def accept_donation(
             status_code=404,
             detail="Donation not found"
         )
+    
+    ngo = (
+        db.query(NGO)
+        .filter(NGO.user_id == current_user.id)
+        .first()
+    )
 
+    if not ngo:
+        raise HTTPException(
+            status_code=404,
+            detail="NGO profile not found"
+        )
+    
     donation.status = "Accepted"
-
+    donation.accepted_by_ngo_id = ngo.id
     db.commit()
     db.refresh(donation)
 

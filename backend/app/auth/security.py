@@ -67,7 +67,7 @@ def get_current_user(
             SECRET_KEY,
             algorithms=[ALGORITHM]
         )
-
+        print("JWT payload:", payload)
         user_id = payload.get("sub")
 
         if user_id is None:
@@ -77,7 +77,7 @@ def get_current_user(
 
         if user is None:
             raise credentials_exception
-
+        print("Authenticated user:", user.id, user.email)
         return user
 
     except JWTError:

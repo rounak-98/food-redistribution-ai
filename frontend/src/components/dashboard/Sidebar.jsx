@@ -5,8 +5,8 @@ export default function Sidebar({ collapsed, setCollapsed }) {
   const menu = [
     { name: "Dashboard", path: "/dashboard/business", icon: "🏠" },
     { name: "Inventory", path: "/inventory", icon: "📦" },
-    { name: "Donations", path: "/donations/", icon: "🍱" },
-    { name: "Insights", path: "/insights", icon: "📊" },
+    { name: "Donations", path: "/donations/history", icon: "🍱" },
+    { name: "Insights", path: "/analytics", icon: "📊" },
     { name: "Profile", path: "/profile", icon: "👤" },
     { name: "Alerts", path: "/alerts", icon: "🔔" },
   ];

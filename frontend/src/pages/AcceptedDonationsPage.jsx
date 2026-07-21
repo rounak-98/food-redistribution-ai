@@ -1,33 +1,22 @@
 import NGODashboardLayout from "../components/dashboard/NGODashboardLayout";
-
+import { useEffect, useState } from "react";
+import { getAcceptedDonations } from "../services/donationService";
 export default function AcceptedDonationsPage() {
 
-  const acceptedDonations = [
-    {
-      id: 1,
-      food: "Rice",
-      donor: "ABC Restaurant",
-      quantity: "20 kg",
-      pickup: "Today",
-      status: "Accepted",
-    },
-    {
-      id: 2,
-      food: "Bread",
-      donor: "Hotel Sunshine",
-      quantity: "50 pcs",
-      pickup: "Tomorrow",
-      status: "Pickup Scheduled",
-    },
-    {
-      id: 3,
-      food: "Vegetables",
-      donor: "Green Mart",
-      quantity: "30 kg",
-      pickup: "Yesterday",
-      status: "Collected",
-    },
-  ];
+  const [acceptedDonations, setAcceptedDonations] = useState([]);
+
+  useEffect(() => {
+    loadAcceptedDonations();
+  }, []);
+
+  const loadAcceptedDonations = async () => {
+    try {
+      const data = await getAcceptedDonations();
+      setAcceptedDonations(data);
+    } catch (error) {
+      console.error("Failed to load accepted donations:", error);
+    }
+  };
 
   return (
     <NGODashboardLayout>
@@ -70,11 +59,11 @@ export default function AcceptedDonationsPage() {
                 >
 
                   <td className="p-4 font-medium">
-                    🍱 {item.food}
+                    🍱 {item.food_name}
                   </td>
 
                   <td className="p-4">
-                    {item.donor}
+                    {item.business?.business_name || "Business"}
                   </td>
 
                   <td className="p-4">
@@ -82,17 +71,16 @@ export default function AcceptedDonationsPage() {
                   </td>
 
                   <td className="p-4">
-                    {item.pickup}
+                    {item.pickup_time}
                   </td>
 
                   <td className="p-4">
 
                     <span
                       className={`px-3 py-1 rounded-full text-sm font-medium
-                        ${
-                          item.status === "Accepted"
-                            ? "bg-blue-100 text-blue-700"
-                            : item.status === "Pickup Scheduled"
+                        ${item.status === "Accepted"
+                          ? "bg-blue-100 text-blue-700"
+                          : item.status === "Pickup Scheduled"
                             ? "bg-yellow-100 text-yellow-700"
                             : "bg-green-100 text-green-700"
                         }`}

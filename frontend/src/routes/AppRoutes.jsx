@@ -90,7 +90,7 @@ export default function AppRoutes() {
         />
 
         <Route
-          path="/donations/"
+          path="/donations/history"
           element={<DonationHistoryPage />}
         />
 
@@ -98,7 +98,7 @@ export default function AppRoutes() {
         <Route path="/inventory/add" element={<AddInventoryPage />} />
         
         <Route
-          path="/insights"
+          path="/analytics"
           element={<InsightsPage />}
         />
 

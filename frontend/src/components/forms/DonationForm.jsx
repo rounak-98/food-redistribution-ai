@@ -7,10 +7,9 @@ export default function DonationForm() {
   const location = useLocation();
   const inventoryItem = location.state?.inventoryItem;
 
-  const storedUser = JSON.parse(localStorage.getItem("user"));
+  const storedProfile = JSON.parse(localStorage.getItem("profile"));
 
-  const businessId = storedUser?.business?.id;
-
+  const businessId = storedProfile?.id;
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -23,14 +22,14 @@ export default function DonationForm() {
     food_category: inventoryItem?.category || "",
 
     quantity: inventoryItem
-        ? `${inventoryItem.quantity} ${inventoryItem.unit}`
-        : "",
+      ? `${inventoryItem.quantity} ${inventoryItem.unit}`
+      : "",
 
     manufacturing_date:
-        inventoryItem?.manufacturing_date || "",
+      inventoryItem?.manufacturing_date || "",
 
     expiry_date:
-        inventoryItem?.expiry_date || "",
+      inventoryItem?.expiry_date || "",
 
     pickup_address: "",
 
@@ -43,7 +42,7 @@ export default function DonationForm() {
     special_instructions: "",
 
     image_url: inventoryItem?.image_url || "",
-});
+  });
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -59,6 +58,7 @@ export default function DonationForm() {
     setMessage("");
 
     try {
+      console.log("Submitting Donation:", formData);
       await createDonation(formData);
 
       setMessage("Donation added successfully!");
@@ -68,7 +68,15 @@ export default function DonationForm() {
       }, 1500);
 
     } catch (err) {
-      setError(err.response?.data?.detail || "Failed to add donation.");
+      console.log("Response data:", err.response?.data);
+
+      const detail = err.response?.data?.detail;
+
+      if (Array.isArray(detail)) {
+        setError(detail.map((e) => e.msg).join(", "));
+      } else {
+        setError(detail || "Failed to add donation.");
+      }
     }
 
     setLoading(false);
