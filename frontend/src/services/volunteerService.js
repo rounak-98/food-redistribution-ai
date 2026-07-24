@@ -29,3 +29,17 @@ export const updateDeliveryTaskStatus = async (donationId, status) => {
   });
   return response.data;
 };
+
+export const verifyPickupOTP = async (donationId, otp) => {
+  const response = await api.post(`/api/volunteer/tasks/${donationId}/verify-pickup-otp`, {
+    otp,
+  });
+  return response.data;
+};
+
+export const verifyDeliveryOTP = async (donationId, otp) => {
+  const response = await api.post(`/api/volunteer/tasks/${donationId}/verify-delivery-otp`, {
+    otp,
+  });
+  return response.data;
+};

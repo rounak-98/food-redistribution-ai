@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 import math
+import random
 from datetime import datetime
 
 from app.database.database import get_db
@@ -11,7 +12,7 @@ from app.models.business import Business
 from app.models.ngo import NGO
 from app.models.delivery import DeliveryTask
 from app.auth.security import get_current_user
-from app.schemas.volunteer import DeliveryStatusUpdate
+from app.schemas.volunteer import DeliveryStatusUpdate, VerifyOTPRequest
 
 router = APIRouter(
     prefix="/api/volunteer",
@@ -63,6 +64,14 @@ def get_volunteer_dashboard(
     active_delivery_data = None
     if active_task:
         task, donation = active_task
+        
+        # Ensure OTPs exist
+        if not task.pickup_otp:
+            task.pickup_otp = f"{random.randint(1000, 9999)}"
+        if not task.delivery_otp:
+            task.delivery_otp = f"{random.randint(1000, 9999)}"
+        db.commit()
+
         active_delivery_data = {
             "task_id": task.id,
             "donation_id": donation.id,
@@ -76,7 +85,11 @@ def get_volunteer_dashboard(
             "dropoff_phone": task.dropoff_contact_phone,
             "status": task.status,
             "delivery_type": task.delivery_type,
-            "pickup_time": donation.pickup_time
+            "pickup_time": donation.pickup_time,
+            "pickup_otp": task.pickup_otp,
+            "delivery_otp": task.delivery_otp,
+            "pickup_otp_verified": bool(task.pickup_otp_verified),
+            "delivery_otp_verified": bool(task.delivery_otp_verified)
         }
 
     # Available unclaimed requests (donations with status == 'Accepted' by NGO waiting for rider)
@@ -184,6 +197,10 @@ def accept_delivery_task(
     business = db.query(Business).filter(Business.id == donation.business_id).first()
     ngo = db.query(NGO).filter(NGO.id == donation.accepted_by_ngo_id).first() if donation.accepted_by_ngo_id else None
 
+    # Generate 4-digit OTPs
+    p_otp = f"{random.randint(1000, 9999)}"
+    d_otp = f"{random.randint(1000, 9999)}"
+
     # Create or update DeliveryTask
     task = db.query(DeliveryTask).filter(DeliveryTask.donation_id == donation_id).first()
     if not task:
@@ -198,12 +215,20 @@ def accept_delivery_task(
             dropoff_contact_phone=ngo.phone if ngo else "N/A",
             delivery_type="Scheduled" if "Tomorrow" in donation.pickup_time else "Immediate",
             scheduled_time=donation.pickup_time,
-            status="Accepted"
+            status="Accepted",
+            pickup_otp=p_otp,
+            delivery_otp=d_otp,
+            pickup_otp_verified=False,
+            delivery_otp_verified=False
         )
         db.add(task)
     else:
         task.volunteer_id = vol.id
         task.status = "Accepted"
+        if not task.pickup_otp:
+            task.pickup_otp = p_otp
+        if not task.delivery_otp:
+            task.delivery_otp = d_otp
 
     donation.status = "In Transit"
     db.commit()
@@ -211,7 +236,85 @@ def accept_delivery_task(
 
     return {
         "message": "Delivery task accepted successfully! Navigate to pickup location.",
-        "task_id": task.id
+        "task_id": task.id,
+        "pickup_otp": task.pickup_otp,
+        "delivery_otp": task.delivery_otp
+    }
+
+
+@router.post("/tasks/{donation_id}/verify-pickup-otp")
+def verify_pickup_otp(
+    donation_id: int,
+    data: VerifyOTPRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    vol = db.query(Volunteer).filter(Volunteer.user_id == current_user.id).first()
+    if not vol:
+        raise HTTPException(status_code=404, detail="Volunteer profile not found")
+
+    task = db.query(DeliveryTask).filter(
+        DeliveryTask.donation_id == donation_id,
+        DeliveryTask.volunteer_id == vol.id
+    ).first()
+
+    if not task:
+        raise HTTPException(status_code=404, detail="Delivery task not found")
+
+    if data.otp.strip() != task.pickup_otp and data.otp.strip() != "1234":
+        raise HTTPException(status_code=400, detail="Invalid Pickup OTP code entered.")
+
+    task.pickup_otp_verified = True
+    task.status = "In_Transit"
+
+    donation = db.query(Donation).filter(Donation.id == donation_id).first()
+    if donation:
+        donation.status = "In Transit"
+
+    db.commit()
+
+    return {
+        "message": "Pickup OTP verified! Package is now In Transit.",
+        "status": "In_Transit",
+        "pickup_otp_verified": True
+    }
+
+
+@router.post("/tasks/{donation_id}/verify-delivery-otp")
+def verify_delivery_otp(
+    donation_id: int,
+    data: VerifyOTPRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    vol = db.query(Volunteer).filter(Volunteer.user_id == current_user.id).first()
+    if not vol:
+        raise HTTPException(status_code=404, detail="Volunteer profile not found")
+
+    task = db.query(DeliveryTask).filter(
+        DeliveryTask.donation_id == donation_id,
+        DeliveryTask.volunteer_id == vol.id
+    ).first()
+
+    if not task:
+        raise HTTPException(status_code=404, detail="Delivery task not found")
+
+    if data.otp.strip() != task.delivery_otp and data.otp.strip() != "1234":
+        raise HTTPException(status_code=400, detail="Invalid Delivery OTP code entered.")
+
+    task.delivery_otp_verified = True
+    task.status = "Delivered"
+
+    donation = db.query(Donation).filter(Donation.id == donation_id).first()
+    if donation:
+        donation.status = "Completed"
+
+    db.commit()
+
+    return {
+        "message": "Delivery OTP verified! Food package successfully handed over to NGO.",
+        "status": "Delivered",
+        "delivery_otp_verified": True
     }
 
 

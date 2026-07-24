@@ -1,16 +1,22 @@
 import { useEffect, useState } from "react";
 import VolunteerDashboardLayout from "../components/dashboard/VolunteerDashboardLayout";
+import LiveMapWidget, { getCityCoordinates } from "../components/dashboard/LiveMapWidget";
 import {
   getVolunteerDashboard,
   toggleVolunteerOnlineStatus,
   acceptDeliveryTask,
   updateDeliveryTaskStatus,
+  verifyPickupOTP,
+  verifyDeliveryOTP,
 } from "../services/volunteerService";
 
 export default function VolunteerDashboard() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("immediate"); // "immediate" or "scheduled"
   const [actionLoading, setActionLoading] = useState(null);
+  const [pickupOtpInput, setPickupOtpInput] = useState("");
+  const [deliveryOtpInput, setDeliveryOtpInput] = useState("");
+
   const [dashboardData, setDashboardData] = useState({
     volunteer: {},
     stats: { deliveries_completed: 0, total_distance_km: 0, hours_volunteered: 0, karma_points: 0 },
@@ -61,6 +67,42 @@ export default function VolunteerDashboard() {
     }
   };
 
+  const handleVerifyPickup = async (donationId) => {
+    if (!pickupOtpInput.trim()) {
+      alert("Please enter the 4-digit Pickup OTP code from the Donor.");
+      return;
+    }
+    try {
+      setActionLoading(donationId);
+      const res = await verifyPickupOTP(donationId, pickupOtpInput);
+      alert(res.message);
+      setPickupOtpInput("");
+      loadDashboard();
+    } catch (err) {
+      alert(err.response?.data?.detail || "Invalid Pickup OTP.");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleVerifyDelivery = async (donationId) => {
+    if (!deliveryOtpInput.trim()) {
+      alert("Please enter the 4-digit Delivery OTP code from the NGO.");
+      return;
+    }
+    try {
+      setActionLoading(donationId);
+      const res = await verifyDeliveryOTP(donationId, deliveryOtpInput);
+      alert(res.message);
+      setDeliveryOtpInput("");
+      loadDashboard();
+    } catch (err) {
+      alert(err.response?.data?.detail || "Invalid Delivery OTP.");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const handleUpdateStatus = async (donationId, status) => {
     try {
       setActionLoading(donationId);
@@ -78,9 +120,49 @@ export default function VolunteerDashboard() {
   const active = dashboardData.active_delivery;
   const vol = dashboardData.volunteer;
 
+  // City Geocoding for Map Coordinates
+  const [cityLat, cityLng] = getCityCoordinates(vol?.city || "bengaluru");
+
+  // Build GIS Map locations array for live route visualization
+  const mapLocations = [];
+  if (active) {
+    mapLocations.push({
+      id: "pickup-node",
+      name: `Pickup: ${active.pickup_contact_name}`,
+      type: "business",
+      lat: cityLat,
+      lng: cityLng,
+      address: active.pickup_address,
+      phone: active.pickup_phone,
+      details: `🍱 ${active.food_name} (${active.quantity})`,
+    });
+    mapLocations.push({
+      id: "dropoff-node",
+      name: `Dropoff: ${active.dropoff_ngo_name}`,
+      type: "ngo",
+      lat: cityLat + 0.0084,
+      lng: cityLng + 0.0104,
+      address: active.dropoff_address,
+      phone: active.dropoff_phone,
+      details: "🤝 NGO Recipient Destination",
+    });
+    mapLocations.push({
+      id: "rider-node",
+      name: `Rider: ${vol.full_name || "You"}`,
+      type: "rider",
+      lat: cityLat + 0.0034,
+      lng: cityLng + 0.0054,
+      address: "En Route",
+      phone: "Your Active GPS Location",
+      details: `🛵 Status: ${active.status}`,
+    });
+  }
+
+  const activeRoute = active ? [[cityLat, cityLng], [cityLat + 0.0034, cityLng + 0.0054], [cityLat + 0.0084, cityLng + 0.0104]] : null;
+
   return (
     <VolunteerDashboardLayout>
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-7xl mx-auto space-y-8">
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-amber-500"></div>
@@ -88,7 +170,7 @@ export default function VolunteerDashboard() {
         ) : (
           <>
             {/* Header Banner & Online Toggle */}
-            <div className="bg-slate-900 rounded-3xl p-8 text-white shadow-xl mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border border-slate-800">
+            <div className="bg-slate-900 rounded-3xl p-8 text-white shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border border-slate-800">
               <div>
                 <div className="flex items-center gap-3 mb-2">
                   <span className="bg-amber-400 text-slate-900 font-extrabold text-xs px-3 py-1 rounded-full uppercase tracking-wider">
@@ -128,7 +210,7 @@ export default function VolunteerDashboard() {
             </div>
 
             {/* Rider Performance KPI Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
                 <div className="text-3xl mb-2">🚚</div>
                 <p className="text-xs font-semibold text-gray-500">Deliveries Completed</p>
@@ -162,55 +244,142 @@ export default function VolunteerDashboard() {
               </div>
             </div>
 
-            {/* ACTIVE IN-PROGRESS DELIVERY STEPPER (IF ANY) */}
+            {/* LIVE GIS ROUTE MAP WIDGET */}
+            <LiveMapWidget
+              title="Live Delivery Route & GPS Navigation"
+              locations={mapLocations}
+              center={[cityLat, cityLng]}
+              route={activeRoute}
+              height="380px"
+            />
+
+            {/* ACTIVE IN-PROGRESS DELIVERY STEPPER WITH DIRECT BUTTONS & 2-STEP OTP VERIFICATION */}
             {active && (
-              <div className="bg-gradient-to-r from-blue-900 to-indigo-900 rounded-3xl p-8 text-white shadow-xl mb-10 border border-blue-700">
+              <div className="bg-gradient-to-r from-slate-900 to-indigo-950 rounded-3xl p-8 text-white shadow-xl border border-indigo-800">
                 <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-3">
                     <span className="bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-full animate-pulse">
                       ● Active Delivery In Progress
                     </span>
-                    <span className="text-xs text-blue-200">Task ID: #{active.task_id}</span>
+                    <span className="text-xs text-slate-300 font-mono">Task ID: #{active.task_id}</span>
                   </div>
-                  <span className="bg-blue-800 text-blue-100 text-xs px-3 py-1 rounded-lg font-mono">
+                  <span className="bg-indigo-900 text-indigo-200 text-xs px-3 py-1 rounded-lg font-mono">
                     {active.delivery_type}
                   </span>
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-8 mb-8">
-                  {/* Pickup Info */}
-                  <div className="bg-blue-950/60 p-5 rounded-2xl border border-blue-800/80">
-                    <p className="text-xs font-bold text-amber-400 uppercase tracking-wider mb-2">
-                      📍 1. Pickup Location (Donor)
-                    </p>
+                  {/* Pickup Info & Step 1 OTP Verification */}
+                  <div className="bg-slate-800/80 p-6 rounded-2xl border border-slate-700 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs font-bold text-amber-400 uppercase tracking-wider">
+                        📍 Step 1: Donor Pickup
+                      </p>
+                      {active.pickup_otp_verified ? (
+                        <span className="bg-emerald-500/20 text-emerald-300 text-xs font-bold px-2.5 py-0.5 rounded-full border border-emerald-500/30">
+                          ✓ Pickup Verified
+                        </span>
+                      ) : (
+                        <span className="bg-amber-500/20 text-amber-300 text-xs font-bold px-2.5 py-0.5 rounded-full">
+                          Pending Pickup
+                        </span>
+                      )}
+                    </div>
+
                     <h4 className="text-lg font-bold text-white">🍱 {active.food_name}</h4>
-                    <p className="text-xs text-blue-200 mt-1 font-semibold">Quantity: {active.quantity}</p>
-                    <p className="text-sm font-semibold text-gray-200 mt-3">{active.pickup_address}</p>
-                    <p className="text-xs text-blue-300 mt-1">
-                      Contact: {active.pickup_contact_name} • 📞 {active.pickup_phone}
+                    <p className="text-xs text-slate-300 font-semibold">Quantity: {active.quantity}</p>
+                    <p className="text-sm font-semibold text-gray-200">{active.pickup_address}</p>
+                    <p className="text-xs text-slate-300">
+                      Donor Contact: {active.pickup_contact_name} • 📞 {active.pickup_phone}
                     </p>
+
+                    {/* Pickup OTP Input */}
+                    {!active.pickup_otp_verified && (
+                      <div className="pt-2 bg-slate-900 p-3 rounded-xl border border-slate-700">
+                        <label className="block text-[11px] font-bold text-amber-400 mb-1.5 uppercase">
+                          Enter 4-Digit Pickup OTP from Donor:
+                        </label>
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            maxLength={4}
+                            placeholder="e.g. 4821"
+                            value={pickupOtpInput}
+                            onChange={(e) => setPickupOtpInput(e.target.value)}
+                            className="bg-slate-800 text-white border border-slate-600 rounded-lg px-3 py-1.5 text-sm font-mono font-bold w-full focus:outline-none focus:border-amber-400"
+                          />
+                          <button
+                            onClick={() => handleVerifyPickup(active.donation_id)}
+                            disabled={actionLoading === active.donation_id}
+                            className="bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold text-xs px-4 py-1.5 rounded-lg whitespace-nowrap"
+                          >
+                            Verify OTP
+                          </button>
+                        </div>
+                        <p className="text-[10px] text-slate-400 mt-1">Hint: Donor OTP code is displayed on donor card (Demo: 1234)</p>
+                      </div>
+                    )}
                   </div>
 
-                  {/* Dropoff Info */}
-                  <div className="bg-blue-950/60 p-5 rounded-2xl border border-blue-800/80">
-                    <p className="text-xs font-bold text-emerald-400 uppercase tracking-wider mb-2">
-                      🏁 2. Dropoff Destination (NGO)
-                    </p>
+                  {/* Dropoff Info & Step 2 OTP Verification */}
+                  <div className="bg-slate-800/80 p-6 rounded-2xl border border-slate-700 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs font-bold text-emerald-400 uppercase tracking-wider">
+                        🏁 Step 2: NGO Dropoff Handover
+                      </p>
+                      {active.delivery_otp_verified ? (
+                        <span className="bg-emerald-500/20 text-emerald-300 text-xs font-bold px-2.5 py-0.5 rounded-full border border-emerald-500/30">
+                          ✓ Delivery Verified
+                        </span>
+                      ) : (
+                        <span className="bg-slate-600 text-slate-300 text-xs font-bold px-2.5 py-0.5 rounded-full">
+                          Pending Dropoff
+                        </span>
+                      )}
+                    </div>
+
                     <h4 className="text-lg font-bold text-white">🏢 {active.dropoff_ngo_name}</h4>
-                    <p className="text-sm font-semibold text-gray-200 mt-3">{active.dropoff_address}</p>
-                    <p className="text-xs text-blue-300 mt-1">
+                    <p className="text-sm font-semibold text-gray-200">{active.dropoff_address}</p>
+                    <p className="text-xs text-slate-300">
                       NGO Contact Phone: 📞 {active.dropoff_phone}
                     </p>
+
+                    {/* Delivery OTP Input */}
+                    {!active.delivery_otp_verified && (
+                      <div className="pt-2 bg-slate-900 p-3 rounded-xl border border-slate-700">
+                        <label className="block text-[11px] font-bold text-emerald-400 mb-1.5 uppercase">
+                          Enter 4-Digit Delivery OTP from NGO:
+                        </label>
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            maxLength={4}
+                            placeholder="e.g. 7913"
+                            value={deliveryOtpInput}
+                            onChange={(e) => setDeliveryOtpInput(e.target.value)}
+                            className="bg-slate-800 text-white border border-slate-600 rounded-lg px-3 py-1.5 text-sm font-mono font-bold w-full focus:outline-none focus:border-emerald-400"
+                          />
+                          <button
+                            onClick={() => handleVerifyDelivery(active.donation_id)}
+                            disabled={actionLoading === active.donation_id}
+                            className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs px-4 py-1.5 rounded-lg whitespace-nowrap"
+                          >
+                            Verify OTP
+                          </button>
+                        </div>
+                        <p className="text-[10px] text-slate-400 mt-1">Hint: Recipient NGO provides this OTP at dropoff (Demo: 1234)</p>
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                {/* Status Update Action Buttons */}
-                <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-blue-800">
-                  <p className="text-xs text-blue-200 font-semibold">
+                {/* Direct 1-Click Status Update Buttons (Restored Original Controls) */}
+                <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-slate-800">
+                  <p className="text-xs text-slate-300 font-semibold">
                     Current Status: <span className="text-amber-300 font-bold uppercase">{active.status}</span>
                   </p>
 
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-wrap items-center gap-3">
                     {active.status === "Accepted" && (
                       <button
                         onClick={() => handleUpdateStatus(active.donation_id, "In_Transit")}
@@ -243,7 +412,7 @@ export default function VolunteerDashboard() {
             )}
 
             {/* Delivery Requests Navigation Tabs */}
-            <div className="flex items-center justify-between mb-6 border-b pb-4">
+            <div className="flex items-center justify-between border-b pb-4">
               <div className="flex gap-4">
                 <button
                   onClick={() => setActiveTab("immediate")}

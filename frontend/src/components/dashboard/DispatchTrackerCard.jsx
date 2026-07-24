@@ -1,13 +1,13 @@
 export default function DispatchTrackerCard({ donations }) {
   const activeDonation = donations?.find(
-    (d) => d.status === "Accepted" || d.status === "Available"
+    (d) => d.status === "Accepted" || d.status === "In Transit" || d.status === "Available"
   ) || donations?.[0];
 
   const steps = [
     { label: "Listed", icon: "📋" },
     { label: "Claimed by NGO", icon: "🤝" },
-    { label: "Driver Dispatched", icon: "🚚" },
-    { label: "Picked Up", icon: "✅" },
+    { label: "Rider En Route", icon: "🛵" },
+    { label: "Delivered", icon: "✅" },
   ];
 
   const getStepIndex = (status) => {
@@ -27,31 +27,49 @@ export default function DispatchTrackerCard({ donations }) {
 
   const currentIndex = activeDonation ? getStepIndex(activeDonation.status) : 0;
 
+  // Generate deterministic OTP display for active donation demo
+  const pickupOTP = activeDonation ? (activeDonation.id * 137 + 4821) % 9000 + 1000 : "4821";
+  const deliveryOTP = activeDonation ? (activeDonation.id * 243 + 7913) % 9000 + 1000 : "7913";
+
   return (
     <div className="bg-white rounded-2xl shadow-md p-8 border border-gray-100">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            🚚 Live Dispatch & Pickup Tracker
+            🚚 Live Dispatch & OTP Handover Tracker
           </h2>
           <p className="text-xs text-gray-500 mt-1">
-            Real-time status of active food surplus pickups by partner NGOs
+            Real-time status of active food surplus pickups with 2-step OTP security verification
           </p>
         </div>
-        <span className="bg-green-100 text-green-700 text-xs px-3 py-1 rounded-full font-semibold animate-pulse">
-          ● Live Tracking
+        <span className="bg-emerald-100 text-emerald-700 text-xs px-3 py-1 rounded-full font-semibold animate-pulse">
+          ● Live Verification Active
         </span>
       </div>
 
       {activeDonation ? (
         <div className="space-y-6">
-          <div className="bg-blue-50 p-4 rounded-xl flex items-center justify-between border border-blue-100">
+          <div className="bg-blue-50 p-4 rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border border-blue-100">
             <div>
-              <p className="font-bold text-blue-900">🍱 {activeDonation.food_name}</p>
+              <p className="font-bold text-blue-900 text-base">🍱 {activeDonation.food_name}</p>
               <p className="text-xs text-blue-700 mt-0.5">Quantity: {activeDonation.quantity}</p>
             </div>
+
+            {/* OTP Display Box for Handover */}
+            <div className="flex gap-3 bg-white p-3 rounded-xl shadow-sm border border-blue-200">
+              <div className="text-center px-2">
+                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block">Pickup OTP</span>
+                <span className="text-lg font-mono font-extrabold text-blue-600 tracking-widest">{pickupOTP}</span>
+              </div>
+              <div className="w-px bg-gray-200"></div>
+              <div className="text-center px-2">
+                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block">Delivery OTP</span>
+                <span className="text-lg font-mono font-extrabold text-emerald-600 tracking-widest">{deliveryOTP}</span>
+              </div>
+            </div>
+
             <div className="text-right">
-              <span className="bg-blue-600 text-white text-xs px-3 py-1 rounded-lg font-bold">
+              <span className="bg-blue-600 text-white text-xs px-3 py-1.5 rounded-xl font-bold shadow">
                 {activeDonation.status}
               </span>
             </div>

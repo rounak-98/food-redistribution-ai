@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import StatCard from "../components/dashboard/StatCard";
 import QuickActionCard from "../components/dashboard/QuickActionCard";
 import NGODashboardLayout from "../components/dashboard/NGODashboardLayout";
+import LiveMapWidget from "../components/dashboard/LiveMapWidget";
 import { getNGODashboardStats } from "../services/ngoService";
 
 export default function NGODashboard() {
@@ -34,10 +35,46 @@ export default function NGODashboard() {
     }
   };
 
+  const ngoProfile = dashboardData.ngo_profile;
+
+  // Build Map locations array for NGO Dashboard
+  const ngoLocations = [
+    {
+      id: "ngo-self",
+      name: ngoProfile?.ngo_name || "Your NGO Shelter",
+      type: "ngo",
+      lat: ngoProfile?.latitude || 12.9800,
+      lng: ngoProfile?.longitude || 77.6050,
+      address: ngoProfile?.address || "Brigade Road, Bengaluru",
+      phone: ngoProfile?.phone || "NGO Contact",
+      details: "🤝 Verified Recipient Shelter",
+    },
+    {
+      id: "donor-nearby-1",
+      name: "Royal Palace Hotel & Bakery",
+      type: "business",
+      lat: 12.9716,
+      lng: 77.5946,
+      address: "12 MG Road, Indiranagar",
+      phone: "+91 98765 43210",
+      details: "🍱 Available: 50 Portions Cooked Biryani",
+    },
+    {
+      id: "rider-dispatch-1",
+      name: "Logistics Rider",
+      type: "rider",
+      lat: 12.9750,
+      lng: 77.6000,
+      address: "En Route to NGO",
+      phone: "+91 99887 76655",
+      details: "🛵 Active Delivery Rider",
+    },
+  ];
+
   return (
     <NGODashboardLayout>
-      <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+      <div className="max-w-7xl mx-auto space-y-8">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">
               NGO Overview Dashboard
@@ -89,21 +126,21 @@ export default function NGODashboard() {
             </div>
 
             {/* NGO Location & Address Widget */}
-            {dashboardData.ngo_profile && (
-              <div className="mt-8 bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl p-6 text-white shadow-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            {ngoProfile && (
+              <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl p-6 text-white shadow-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                   <div className="flex items-center gap-2 text-blue-200 text-sm font-semibold uppercase tracking-wider mb-1">
                     📍 Current Location & Operational Region
                   </div>
                   <h3 className="text-xl font-bold">
-                    {dashboardData.ngo_profile.ngo_name}
+                    {ngoProfile.ngo_name}
                   </h3>
                   <p className="text-blue-100 text-sm mt-1">
-                    {dashboardData.ngo_profile.address}, {dashboardData.ngo_profile.city}, {dashboardData.ngo_profile.state} - {dashboardData.ngo_profile.pincode}
+                    {ngoProfile.address}, {ngoProfile.city}, {ngoProfile.state} - {ngoProfile.pincode}
                   </p>
                   <p className="text-xs text-blue-200 mt-1">
-                    GPS Coordinates: {dashboardData.ngo_profile.latitude && dashboardData.ngo_profile.longitude 
-                      ? `${dashboardData.ngo_profile.latitude}, ${dashboardData.ngo_profile.longitude}` 
+                    GPS Coordinates: {ngoProfile.latitude && ngoProfile.longitude 
+                      ? `${ngoProfile.latitude}, ${ngoProfile.longitude}` 
                       : "Not set (Click edit profile to enable precise distance calculation)"}
                   </p>
                 </div>
@@ -116,35 +153,44 @@ export default function NGODashboard() {
               </div>
             )}
 
+            {/* Live GIS Map Component */}
+            <LiveMapWidget
+              title="Nearby Food Surplus & Rider Map"
+              locations={ngoLocations}
+              height="380px"
+            />
+
             {/* Quick Actions Grid */}
-            <h2 className="text-2xl font-bold mt-10 mb-6 text-gray-900">
-              Quick Navigation
-            </h2>
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <QuickActionCard
-                title="Browse Donations"
-                icon="🍱"
-                path="/ngo/donations"
-              />
-              <QuickActionCard
-                title="Accepted List"
-                icon="✅"
-                path="/ngo/accepted"
-              />
-              <QuickActionCard
-                title="Donation History"
-                icon="📜"
-                path="/ngo/history"
-              />
-              <QuickActionCard
-                title="NGO Profile"
-                icon="👤"
-                path="/ngo/profile"
-              />
+            <div>
+              <h2 className="text-2xl font-bold mb-6 text-gray-900">
+                Quick Navigation
+              </h2>
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <QuickActionCard
+                  title="Browse Donations"
+                  icon="🍱"
+                  path="/ngo/donations"
+                />
+                <QuickActionCard
+                  title="Accepted List"
+                  icon="✅"
+                  path="/ngo/accepted"
+                />
+                <QuickActionCard
+                  title="Donation History"
+                  icon="📜"
+                  path="/ngo/history"
+                />
+                <QuickActionCard
+                  title="NGO Profile"
+                  icon="👤"
+                  path="/ngo/profile"
+                />
+              </div>
             </div>
 
             {/* Dynamic AI Cards & Recent Donations */}
-            <div className="grid lg:grid-cols-2 gap-8 mt-10">
+            <div className="grid lg:grid-cols-2 gap-8">
               {/* AI Recommendation Engine */}
               <div className="bg-white rounded-2xl shadow-md p-8 border border-gray-100">
                 <div className="flex items-center justify-between mb-6">

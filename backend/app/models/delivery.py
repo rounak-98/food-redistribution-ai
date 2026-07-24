@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Text
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Text, Boolean
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 
@@ -42,6 +42,12 @@ class DeliveryTask(Base):
         String(30),
         default="Pending_Acceptance"
     )  # Pending_Acceptance, Accepted, In_Transit, Delivered, Rejected
+
+    # OTP Verification Fields
+    pickup_otp = Column(String(10), nullable=True)  # e.g. "4821"
+    delivery_otp = Column(String(10), nullable=True)  # e.g. "7913"
+    pickup_otp_verified = Column(Boolean, default=False)
+    delivery_otp_verified = Column(Boolean, default=False)
 
     notes = Column(Text)
 

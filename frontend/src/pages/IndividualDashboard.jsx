@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import IndividualDashboardLayout from "../components/dashboard/IndividualDashboardLayout";
+import LiveMapWidget from "../components/dashboard/LiveMapWidget";
 import { getIndividualDashboard, postIndividualDonation } from "../services/individualService";
 import QuickActionCard from "../components/dashboard/QuickActionCard";
 
@@ -67,9 +68,45 @@ export default function IndividualDashboard() {
     }
   };
 
+  const indProfile = dashboardData.user_profile;
+
+  // Map nodes for Individual Household Dashboard
+  const indLocations = [
+    {
+      id: "ind-self",
+      name: indProfile?.name || "Your Household",
+      type: "individual",
+      lat: indProfile?.latitude || 12.9650,
+      lng: indProfile?.longitude || 77.5900,
+      address: indProfile?.address || "Koramangala, Bengaluru",
+      phone: indProfile?.phone || "Your Contact Number",
+      details: "👤 Household Food Donor",
+    },
+    {
+      id: "ngo-center-1",
+      name: "Asha Food Shelter & Care",
+      type: "ngo",
+      lat: 12.9800,
+      lng: 77.6050,
+      address: "45 Brigade Road, Bengaluru",
+      phone: "+91 91234 56789",
+      details: "🤝 Verified Recipient Shelter (1.8 km)",
+    },
+    {
+      id: "rider-pickup-1",
+      name: "Volunteer Pickup Rider",
+      type: "rider",
+      lat: 12.9750,
+      lng: 77.6000,
+      address: "Nearby volunteer on route",
+      phone: "+91 99887 76655",
+      details: "🛵 Active Logistics Rider",
+    },
+  ];
+
   return (
     <IndividualDashboardLayout>
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-7xl mx-auto space-y-8">
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-600"></div>
@@ -77,13 +114,13 @@ export default function IndividualDashboard() {
         ) : (
           <>
             {/* Top Welcome Banner */}
-            <div className="bg-gradient-to-r from-teal-700 via-emerald-600 to-cyan-700 rounded-3xl p-8 text-white shadow-xl mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div className="bg-gradient-to-r from-teal-700 via-emerald-600 to-cyan-700 rounded-3xl p-8 text-white shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
               <div>
                 <div className="inline-block bg-white/20 text-white text-xs font-bold px-3 py-1 rounded-full mb-2 uppercase tracking-wider">
                   🌱 Zero-Waste Community Donor
                 </div>
                 <h2 className="text-3xl font-bold">
-                  Welcome, {dashboardData.user_profile?.name || "Community Member"} 👋
+                  Welcome, {indProfile?.name || "Community Member"} 👋
                 </h2>
                 <p className="text-teal-100 text-sm mt-1 max-w-xl leading-relaxed">
                   Share excess home food, event surplus, or grocery items with local food banks and NGOs nearby!
@@ -99,68 +136,79 @@ export default function IndividualDashboard() {
             </div>
 
             {/* Impact Metric Cards Grid */}
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Personal Impact Overview</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10">
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                <div className="text-3xl mb-2">📦</div>
-                <p className="text-xs font-semibold text-gray-500">Donations Posted</p>
-                <h3 className="text-2xl font-extrabold text-gray-900 mt-1">
-                  {dashboardData.stats.total_donations_posted}
-                </h3>
-              </div>
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Personal Impact Overview</h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                  <div className="text-3xl mb-2">📦</div>
+                  <p className="text-xs font-semibold text-gray-500">Donations Posted</p>
+                  <h3 className="text-2xl font-extrabold text-gray-900 mt-1">
+                    {dashboardData.stats.total_donations_posted}
+                  </h3>
+                </div>
 
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                <div className="text-3xl mb-2">🍽️</div>
-                <p className="text-xs font-semibold text-gray-500">Meals Contributed</p>
-                <h3 className="text-2xl font-extrabold text-teal-600 mt-1">
-                  {dashboardData.stats.meals_contributed}
-                </h3>
-              </div>
+                <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                  <div className="text-3xl mb-2">🍽️</div>
+                  <p className="text-xs font-semibold text-gray-500">Meals Contributed</p>
+                  <h3 className="text-2xl font-extrabold text-teal-600 mt-1">
+                    {dashboardData.stats.meals_contributed}
+                  </h3>
+                </div>
 
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                <div className="text-3xl mb-2">🌍</div>
-                <p className="text-xs font-semibold text-gray-500">CO₂ Avoided (kg)</p>
-                <h3 className="text-2xl font-extrabold text-emerald-600 mt-1">
-                  {dashboardData.stats.co2_saved_kg}
-                </h3>
-              </div>
+                <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                  <div className="text-3xl mb-2">🌍</div>
+                  <p className="text-xs font-semibold text-gray-500">CO₂ Avoided (kg)</p>
+                  <h3 className="text-2xl font-extrabold text-emerald-600 mt-1">
+                    {dashboardData.stats.co2_saved_kg}
+                  </h3>
+                </div>
 
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                <div className="text-3xl mb-2">⭐</div>
-                <p className="text-xs font-semibold text-gray-500">Hero Points</p>
-                <h3 className="text-2xl font-extrabold text-amber-500 mt-1">
-                  {dashboardData.stats.hero_points} XP
-                </h3>
+                <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                  <div className="text-3xl mb-2">⭐</div>
+                  <p className="text-xs font-semibold text-gray-500">Hero Points</p>
+                  <h3 className="text-2xl font-extrabold text-amber-500 mt-1">
+                    {dashboardData.stats.hero_points} XP
+                  </h3>
+                </div>
               </div>
             </div>
 
+            {/* GIS Live Map Widget */}
+            <LiveMapWidget
+              title="Nearby NGO Centers & Community Food Drop-Off Map"
+              locations={indLocations}
+              height="380px"
+            />
+
             {/* Quick Actions Grid */}
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Quick Navigation</h2>
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-              <QuickActionCard
-                title="Post Home Food"
-                icon="➕"
-                path="#"
-              />
-              <QuickActionCard
-                title="My Home Donations"
-                icon="🍱"
-                path="/individual/donations"
-              />
-              <QuickActionCard
-                title="Find Nearby NGOs"
-                icon="🤝"
-                path="/individual/ngos"
-              />
-              <QuickActionCard
-                title="My Badges"
-                icon="🏆"
-                path="/individual/badges"
-              />
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Quick Navigation</h2>
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <QuickActionCard
+                  title="Post Home Food"
+                  icon="➕"
+                  path="#"
+                />
+                <QuickActionCard
+                  title="My Home Donations"
+                  icon="🍱"
+                  path="/individual/donations"
+                />
+                <QuickActionCard
+                  title="Find Nearby NGOs"
+                  icon="🤝"
+                  path="/individual/ngos"
+                />
+                <QuickActionCard
+                  title="My Badges"
+                  icon="🏆"
+                  path="/individual/badges"
+                />
+              </div>
             </div>
 
             {/* Community Badges Grid */}
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mb-10">
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
               <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
                 🏆 My Community Achievement Badges
               </h3>

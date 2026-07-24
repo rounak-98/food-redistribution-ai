@@ -18,3 +18,7 @@ class VolunteerRegisterRequest(BaseModel):
 
 class DeliveryStatusUpdate(BaseModel):
     status: str  # Accepted, In_Transit, Delivered, Rejected
+
+
+class VerifyOTPRequest(BaseModel):
+    otp: str
