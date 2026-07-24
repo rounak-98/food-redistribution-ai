@@ -17,26 +17,28 @@ ChartJS.register(
 );
 
 export default function CategoryBarChart({ inventory = [] }) {
+  const safeInventory = Array.isArray(inventory) ? inventory : [];
   const categoryMap = {};
 
-  inventory.forEach((item) => {
+  safeInventory.forEach((item) => {
     const category =
-      item.food_category ||
-      item.category ||
+      item?.food_category ||
+      item?.category ||
       "Others";
 
     categoryMap[category] =
       (categoryMap[category] || 0) + 1;
   });
 
-  const labels = Object.keys(categoryMap);
+  const labels = Object.keys(categoryMap).length > 0 ? Object.keys(categoryMap) : ["Cooked Meal", "Bakery", "Produce"];
+  const values = Object.keys(categoryMap).length > 0 ? Object.values(categoryMap) : [0, 0, 0];
 
   const data = {
     labels,
     datasets: [
       {
         label: "Food Items",
-        data: Object.values(categoryMap),
+        data: values,
         backgroundColor: "#16a34a",
         borderRadius: 8,
       },

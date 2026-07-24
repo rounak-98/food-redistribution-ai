@@ -7,7 +7,6 @@ import DashboardLayout from "../components/dashboard/DashboardLayout";
 import { getInventory } from "../services/inventoryService";
 import InventoryPieChart from "../components/dashboard/InventoryPieChart";
 import CategoryBarChart from "../components/dashboard/CategoryBarChart";
-import DonationTrendChart from "../components/dashboard/DonationTrendChart";
 import KPIStatCard from "../components/dashboard/KPIStatCard";
 import ImpactCertificateModal from "../components/dashboard/ImpactCertificateModal";
 import DispatchTrackerCard from "../components/dashboard/DispatchTrackerCard";
@@ -37,27 +36,30 @@ export default function BusinessDashboard() {
   async function loadDashboardSummary() {
     try {
       const data = await getDashboardSummary();
-      setSummary(data);
+      setSummary(data || {});
     } catch (err) {
-      console.log(err);
+      console.error("Error loading summary:", err);
+      setSummary({});
     }
   }
 
   async function loadInventory() {
     try {
       const data = await getInventory();
-      setInventory(data);
+      setInventory(Array.isArray(data) ? data : []);
     } catch (err) {
-      console.log(err);
+      console.error("Error loading inventory:", err);
+      setInventory([]);
     }
   }
 
   async function loadDonations() {
     try {
       const data = await getBusinessDonations();
-      setDonations(data);
+      setDonations(Array.isArray(data) ? data : []);
     } catch (err) {
-      console.log(err);
+      console.error("Error loading donations:", err);
+      setDonations([]);
     }
   }
 
@@ -65,7 +67,7 @@ export default function BusinessDashboard() {
   let business = null;
   try {
     const rawProfile = localStorage.getItem("profile");
-    if (rawProfile && rawProfile !== "undefined") {
+    if (rawProfile && rawProfile !== "undefined" && rawProfile !== "null") {
       business = JSON.parse(rawProfile);
     }
   } catch (e) {
@@ -77,11 +79,13 @@ export default function BusinessDashboard() {
   const donorLat = business?.latitude && parseFloat(business.latitude) !== 0 ? parseFloat(business.latitude) : cityLat;
   const donorLng = business?.longitude && parseFloat(business.longitude) !== 0 ? parseFloat(business.longitude) : cityLng;
 
-  // Build Map Nodes for Business Dashboard
+  const safeDonations = Array.isArray(donations) ? donations : [];
+
+  // Build Dynamic Map Nodes from actual database donations & business coordinates
   const bizLocations = [
     {
       id: "donor-self",
-      name: business?.business_name || "Royal Palace Hotel & Bakery",
+      name: business?.business_name || "Food Donor Business HQ",
       type: "business",
       lat: donorLat,
       lng: donorLng,
@@ -89,33 +93,43 @@ export default function BusinessDashboard() {
       phone: business?.phone || "+91 98765 43210",
       details: "🏢 Active Food Donor HQ",
     },
-    {
-      id: "ngo-partner-1",
+  ];
+
+  // Dynamically add claimed NGOs from actual database donations
+  safeDonations.forEach((item, idx) => {
+    if (item.ngo_name) {
+      bizLocations.push({
+        id: `ngo-claimed-${item.id || idx}`,
+        name: item.ngo_name,
+        type: "ngo",
+        lat: donorLat + (idx + 1) * 0.0054,
+        lng: donorLng + (idx + 1) * 0.0074,
+        address: "Partner NGO Destination",
+        phone: item.ngo_phone || "+91 91234 56789",
+        details: `🤝 Recipient for '${item.food_name}'`,
+      });
+    }
+  });
+
+  // If no claimed NGOs yet, show default nearby NGO partner node
+  if (bizLocations.length === 1) {
+    bizLocations.push({
+      id: "ngo-partner-default",
       name: "Asha Food Shelter NGO",
       type: "ngo",
       lat: donorLat + 0.0084,
       lng: donorLng + 0.0104,
       address: "45 Brigade Road, NGO Center",
       phone: "+91 91234 56789",
-      details: "🤝 Verified Recipient Shelter",
-    },
-    {
-      id: "rider-dispatch-1",
-      name: "En-Route Transport Rider",
-      type: "rider",
-      lat: donorLat + 0.0034,
-      lng: donorLng + 0.0054,
-      address: "1.2 km away from pickup",
-      phone: "+91 99887 76655",
-      details: "🛵 Active Dispatch Rider",
-    },
-  ];
+      details: "🤝 Verified Partner Shelter",
+    });
+  }
 
   return (
     <DashboardLayout>
       <div className="max-w-7xl mx-auto space-y-10">
         {/* Certificate Banner & Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between p-6 rounded-3xl text-white bg-gradient-to-r from-slate-900 via-indigo-900 to-blue-900 shadow-xl border border-indigo-800">
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4 bg-gradient-to-r from-slate-900 via-indigo-900 to-blue-900 p-6 rounded-3xl text-white shadow-xl">
           <div>
             <div className="inline-block bg-amber-400/20 text-amber-300 text-xs font-bold px-3 py-1 rounded-full mb-2 uppercase tracking-wider border border-amber-400/30">
               Verified Food Donor Portal
@@ -124,7 +138,7 @@ export default function BusinessDashboard() {
               Welcome back, {business?.business_name || "Partner Business"}
             </h1>
             <p className="text-gray-300 text-sm mt-1">
-              Food surplus management, live GIS dispatch tracking & ESG sustainability dashboard
+              Food surplus management, live dispatch tracking & ESG sustainability dashboard
             </p>
           </div>
 
@@ -135,17 +149,6 @@ export default function BusinessDashboard() {
             📜 Download ESG & Tax Certificate
           </button>
         </div>
-
-        {/* Live GIS Map Widget */}
-        <LiveMapWidget
-          title="Live Pickup & Transport GIS Logistics Map"
-          locations={bizLocations}
-          center={[donorLat, donorLng]}
-          height="380px"
-        />
-
-        {/* Live Dispatch Tracker */}
-        <DispatchTrackerCard donations={donations} />
 
         {/* Dashboard Overview KPI Stats */}
         <div>
@@ -228,74 +231,116 @@ export default function BusinessDashboard() {
           </div>
         </div>
 
-        {/* AI Surplus Forecast */}
-        <SurplusForecastCard />
-
         {/* Quick Actions */}
         <div>
-          <h2 className="text-2xl font-bold mb-6 text-gray-900">Quick Actions</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          <h2 className="text-2xl font-bold mb-6 text-gray-900">
+            Quick Actions
+          </h2>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             <QuickActionCard
-              title="Post Surplus Food"
+              title="Add Donation"
+              icon="➕"
+              path="/donations/new"
               description="Donate surplus food directly to verified partner NGOs"
-              link="/donations/new"
               buttonText="Create Donation"
             />
             <QuickActionCard
-              title="Manage Inventory"
+              title="Inventory Portal"
+              icon="📦"
+              path="/inventory"
               description="Add, view, and organize stored food inventory items"
-              link="/inventory"
               buttonText="View Inventory"
             />
             <QuickActionCard
               title="Donation History"
+              icon="📜"
+              path="/history"
               description="Track past food donations and claimed pickups"
-              link="/history"
               buttonText="View History"
             />
-          </div>
-        </div>
-
-        {/* AI Health & Insights */}
-        <div>
-          <h2 className="text-2xl font-bold mb-6 text-gray-900">AI Health & Insights</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <AIInsightCard
-              title="AI System Health"
-              value={`${summary?.ai_health_score ?? 98}%`}
-              description="Overall operational efficiency and food redistribution match quality."
-            />
-            <AIInsightCard
-              title="Redistribution Recommendation"
-              value="Optimal"
-              description="High pickup availability in your zone. Consider listing surplus items before 6 PM."
+            <QuickActionCard
+              title="Analytics & Insights"
+              icon="📈"
+              path="/analytics"
+              description="View detailed impact metrics and reports"
+              buttonText="View Analytics"
             />
           </div>
         </div>
 
-        {/* Visual Charts Section */}
-        <div>
-          <h2 className="text-2xl font-bold mb-6 text-gray-900">Inventory & Analytics Visualizer</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <InventoryPieChart inventory={inventory} />
-            <CategoryBarChart inventory={inventory} />
-          </div>
-          <div className="mt-6">
-            <DonationTrendChart donations={donations} />
+        {/* Dispatch Tracker & Forecast Section */}
+        <div className="grid lg:grid-cols-2 gap-8">
+          <DispatchTrackerCard donations={donations} />
+          <SurplusForecastCard />
+        </div>
+
+        {/* AI Insight & Recent Donations */}
+        <div className="grid lg:grid-cols-2 gap-8">
+          <AIInsightCard inventory={inventory} />
+
+          <div className="bg-white rounded-2xl shadow-md p-8 border border-gray-100">
+            <h2 className="text-2xl font-bold mb-6 text-gray-900">
+              Recent Donations
+            </h2>
+
+            <ul className="space-y-4">
+              {safeDonations.length === 0 ? (
+                <p className="text-gray-500 py-6 text-center">No donations posted yet.</p>
+              ) : (
+                safeDonations.slice(0, 5).map((item) => (
+                  <li
+                    key={item.id || item.donation_id || Math.random()}
+                    className="flex justify-between border-b pb-3 items-center"
+                  >
+                    <div>
+                      <p className="font-semibold text-gray-900">
+                        🍱 {item.food_name || "Food Donation"}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        Cat: {item.food_category || item.category || "Surplus Meals"}
+                      </p>
+                    </div>
+
+                    <div className="text-right">
+                      <p className="font-semibold text-blue-600">
+                        {item.quantity}
+                      </p>
+                      <span className="bg-green-100 text-green-700 text-xs px-2.5 py-0.5 rounded-full font-bold">
+                        {item.status || "Available"}
+                      </span>
+                    </div>
+                  </li>
+                ))
+              )}
+            </ul>
           </div>
         </div>
 
-        {/* ESG Certificate Modal */}
-        <ImpactCertificateModal
-          isOpen={isCertificateOpen}
-          onClose={() => setIsCertificateOpen(false)}
-          businessName={business?.business_name || "Partner Business"}
-          foodSavedKg={summary?.food_saved_kg ?? 0}
-          co2SavedKg={summary?.co2_saved_kg ?? 0}
-          financialSavingsINR={summary?.financial_savings_inr ?? 0}
-          taxDeductionINR={summary?.tax_deduction_estimate_inr ?? 0}
-        />
+        {/* Live GIS Logistics Map Section */}
+        <div>
+          <LiveMapWidget
+            title="Live Pickup & Transport GIS Logistics Map"
+            locations={bizLocations}
+            center={[donorLat, donorLng]}
+            height="380px"
+          />
+        </div>
+
+        {/* Inventory Analytics Charts */}
+        <div className="grid lg:grid-cols-2 gap-8">
+          <InventoryPieChart inventory={inventory} />
+          <CategoryBarChart inventory={inventory} />
+        </div>
       </div>
+
+      {/* ESG Sustainability Certificate Modal */}
+      <ImpactCertificateModal
+        isOpen={isCertificateOpen}
+        onClose={() => setIsCertificateOpen(false)}
+        summary={summary}
+        business={business}
+      />
     </DashboardLayout>
   );
 }

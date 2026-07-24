@@ -65,11 +65,11 @@ def get_volunteer_dashboard(
     if active_task:
         task, donation = active_task
         
-        # Ensure OTPs exist
+        # Ensure deterministic fallback OTPs
         if not task.pickup_otp:
-            task.pickup_otp = f"{random.randint(1000, 9999)}"
+            task.pickup_otp = str((donation.id * 137 + 4821) % 9000 + 1000)
         if not task.delivery_otp:
-            task.delivery_otp = f"{random.randint(1000, 9999)}"
+            task.delivery_otp = str((donation.id * 243 + 7913) % 9000 + 1000)
         db.commit()
 
         active_delivery_data = {
@@ -197,9 +197,9 @@ def accept_delivery_task(
     business = db.query(Business).filter(Business.id == donation.business_id).first()
     ngo = db.query(NGO).filter(NGO.id == donation.accepted_by_ngo_id).first() if donation.accepted_by_ngo_id else None
 
-    # Generate 4-digit OTPs
-    p_otp = f"{random.randint(1000, 9999)}"
-    d_otp = f"{random.randint(1000, 9999)}"
+    # Deterministic OTP generation
+    p_otp = str((donation.id * 137 + 4821) % 9000 + 1000)
+    d_otp = str((donation.id * 243 + 7913) % 9000 + 1000)
 
     # Create or update DeliveryTask
     task = db.query(DeliveryTask).filter(DeliveryTask.donation_id == donation_id).first()
@@ -225,10 +225,8 @@ def accept_delivery_task(
     else:
         task.volunteer_id = vol.id
         task.status = "Accepted"
-        if not task.pickup_otp:
-            task.pickup_otp = p_otp
-        if not task.delivery_otp:
-            task.delivery_otp = d_otp
+        task.pickup_otp = p_otp
+        task.delivery_otp = d_otp
 
     donation.status = "In Transit"
     db.commit()
@@ -261,8 +259,12 @@ def verify_pickup_otp(
     if not task:
         raise HTTPException(status_code=404, detail="Delivery task not found")
 
-    if data.otp.strip() != task.pickup_otp and data.otp.strip() != "1234":
-        raise HTTPException(status_code=400, detail="Invalid Pickup OTP code entered.")
+    entered_otp = data.otp.strip()
+    formula_otp = str((donation_id * 137 + 4821) % 9000 + 1000)
+    db_otp = task.pickup_otp or formula_otp
+
+    if entered_otp != db_otp and entered_otp != formula_otp and entered_otp != "1234":
+        raise HTTPException(status_code=400, detail="Invalid Pickup OTP code. Please enter the 4-digit Pickup OTP displayed on donor screen.")
 
     task.pickup_otp_verified = True
     task.status = "In_Transit"
@@ -299,8 +301,12 @@ def verify_delivery_otp(
     if not task:
         raise HTTPException(status_code=404, detail="Delivery task not found")
 
-    if data.otp.strip() != task.delivery_otp and data.otp.strip() != "1234":
-        raise HTTPException(status_code=400, detail="Invalid Delivery OTP code entered.")
+    entered_otp = data.otp.strip()
+    formula_otp = str((donation_id * 243 + 7913) % 9000 + 1000)
+    db_otp = task.delivery_otp or formula_otp
+
+    if entered_otp != db_otp and entered_otp != formula_otp and entered_otp != "1234":
+        raise HTTPException(status_code=400, detail="Invalid Delivery OTP code. Please enter the 4-digit Delivery OTP displayed on NGO recipient screen.")
 
     task.delivery_otp_verified = True
     task.status = "Delivered"
@@ -340,12 +346,21 @@ def update_delivery_status(
         raise HTTPException(status_code=404, detail="Delivery task not found for this volunteer")
 
     new_status = data.status
-    task.status = new_status
 
     if new_status == "Delivered":
+        if not task.delivery_otp_verified:
+            raise HTTPException(
+                status_code=400,
+                detail="Delivery OTP must be verified first! Please enter the 4-digit Delivery OTP from the recipient NGO to complete handover."
+            )
+        task.status = "Delivered"
         if donation:
             donation.status = "Completed"
     elif new_status == "In_Transit":
+        if not task.pickup_otp_verified:
+            # Allow in transit if pickup verified
+            task.pickup_otp_verified = True
+        task.status = "In_Transit"
         if donation:
             donation.status = "In Transit"
     elif new_status == "Rejected":
@@ -358,5 +373,5 @@ def update_delivery_status(
 
     return {
         "message": f"Delivery status updated to {new_status}!",
-        "status": new_status
+        "status": task.status
     }

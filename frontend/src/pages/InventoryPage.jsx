@@ -10,11 +10,14 @@ import { useNavigate } from "react-router-dom";
 
 export default function InventoryPage() {
     const navigate = useNavigate();
-    const storedUser = JSON.parse(localStorage.getItem("user"));
-    const businessId = storedUser?.business?.id;
+    const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+    const storedProfile = JSON.parse(localStorage.getItem("profile") || "{}");
+    const businessId = storedProfile?.id || storedUser?.business_id || storedUser?.id || 1;
+
     const [inventory, setInventory] = useState([]);
     const [searchQuery, setSearchQuery] = useState("");
     const [autoDonatingId, setAutoDonatingId] = useState(null);
+    const [uploadingCSV, setUploadingCSV] = useState(false);
 
     const totalItems = inventory.length;
     const freshItems = inventory.filter((item) => item.status === "Fresh").length;
@@ -27,10 +30,11 @@ export default function InventoryPage() {
 
     async function loadInventory() {
         try {
-            const data = await getInventory(businessId);
-            setInventory(data);
+            const data = await getInventory();
+            setInventory(Array.isArray(data) ? data : []);
         } catch (err) {
-            console.log(err);
+            console.error("Error loading inventory:", err);
+            setInventory([]);
         }
     }
 
@@ -39,11 +43,25 @@ export default function InventoryPage() {
         if (!file) return;
 
         try {
+            setUploadingCSV(true);
             const result = await uploadInventoryCSV(businessId, file);
-            alert(result.message);
+            alert(result?.message || "CSV inventory uploaded successfully!");
             loadInventory();
+            e.target.value = ""; // Reset input
         } catch (err) {
-            alert(err.response?.data?.detail || "CSV upload failed.");
+            console.error("CSV Upload error:", err);
+            const detail = err.response?.data?.detail;
+            let errorMsg = "CSV upload failed.";
+            if (typeof detail === "string") {
+                errorMsg = detail;
+            } else if (Array.isArray(detail)) {
+                errorMsg = detail.map((d) => d.msg || JSON.stringify(d)).join("\n");
+            } else if (detail && typeof detail === "object") {
+                errorMsg = detail.message || JSON.stringify(detail);
+            }
+            alert(`⚠️ CSV Upload Error:\n${errorMsg}`);
+        } finally {
+            setUploadingCSV(false);
         }
     };
 
@@ -53,7 +71,7 @@ export default function InventoryPage() {
 
         try {
             const result = await deleteInventoryItem(itemId);
-            alert(result.message);
+            alert(result?.message || "Item discarded successfully.");
             loadInventory();
         } catch (err) {
             alert(err.response?.data?.detail || "Failed to discard item.");
@@ -64,7 +82,7 @@ export default function InventoryPage() {
         try {
             setAutoDonatingId(itemId);
             const result = await autoDonateInventoryItem(itemId);
-            alert(result.message);
+            alert(result?.message || "Item auto-donated successfully!");
             loadInventory();
             navigate("/donations/history");
         } catch (err) {
@@ -77,19 +95,21 @@ export default function InventoryPage() {
 
     const filteredInventory = inventory.filter(
         (item) =>
-            item.product_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            item.category.toLowerCase().includes(searchQuery.toLowerCase())
+            item.product_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            item.category?.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
     return (
         <DashboardLayout>
-            <div className="max-w-7xl mx-auto">
+            <div className="max-w-7xl mx-auto space-y-8">
                 {/* Page Heading */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-900">📦 Surplus Food Inventory</h1>
-                        <p className="text-gray-500 mt-1">
-                            Track food batches, scan barcodes, and convert expiring stock into instant donations.
+                        <h1 className="text-3xl font-extrabold text-gray-900 flex items-center gap-2">
+                            📦 Surplus Food Inventory Portal
+                        </h1>
+                        <p className="text-gray-500 mt-1 text-sm">
+                            Track food batches, scan barcodes, and upload bulk CSV stock into instant NGO donations.
                         </p>
                     </div>
 
@@ -111,9 +131,10 @@ export default function InventoryPage() {
 
                         <button
                             onClick={() => document.getElementById("csvUpload").click()}
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl font-bold text-sm shadow transition"
+                            disabled={uploadingCSV}
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl font-bold text-sm shadow transition flex items-center gap-2"
                         >
-                            📄 Upload CSV
+                            {uploadingCSV ? "⏳ Uploading..." : "📄 Upload CSV"}
                         </button>
 
                         <button
@@ -126,7 +147,7 @@ export default function InventoryPage() {
                 </div>
 
                 {/* Summary Metric Cards */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                     <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
                         <p className="text-sm font-semibold text-gray-500">Total Products</p>
                         <h2 className="text-3xl font-extrabold text-gray-900 mt-2">{totalItems}</h2>
@@ -148,8 +169,8 @@ export default function InventoryPage() {
                     </div>
                 </div>
 
-                {/* Search Bar */}
-                <div className="bg-white rounded-2xl shadow-sm p-4 mb-6 border border-gray-100">
+                {/* Search Bar & CSV Format Helper */}
+                <div className="bg-white rounded-2xl shadow-sm p-4 border border-gray-100 space-y-3">
                     <input
                         type="text"
                         placeholder="🔍 Search product name or category..."
@@ -157,6 +178,12 @@ export default function InventoryPage() {
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="w-full border border-gray-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
                     />
+
+                    <div className="bg-blue-50 p-3 rounded-xl text-xs text-blue-800 flex justify-between items-center flex-wrap gap-2">
+                        <span>
+                            💡 <strong>CSV Template Format:</strong> Include columns: <code>product_name</code>, <code>category</code>, <code>quantity</code>, <code>expiry_date</code> (YYYY-MM-DD), <code>unit</code>
+                        </span>
+                    </div>
                 </div>
 
                 {/* Inventory Table */}

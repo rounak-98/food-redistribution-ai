@@ -8,6 +8,8 @@ from app.models.donation import Donation
 from app.models.business import Business
 from app.models.user import User
 from app.models.ngo import NGO
+from app.models.delivery import DeliveryTask
+from app.models.volunteer import Volunteer
 from app.auth.security import get_current_user
 from app.schemas.ngo import NGOProfileUpdate
 
@@ -45,6 +47,24 @@ def calculate_distance(lat1, lon1, lat2, lon2):
     return round(earth_radius * c, 2)
 
 
+@router.get("/all")
+def get_all_ngos(db: Session = Depends(get_db)):
+    ngos = db.query(NGO).all()
+    return [
+        {
+            "id": n.id,
+            "ngo_name": n.ngo_name,
+            "contact_person": n.contact_person,
+            "phone": n.phone,
+            "address": f"{n.address}, {n.city}",
+            "city": n.city,
+            "latitude": n.latitude,
+            "longitude": n.longitude
+        }
+        for n in ngos
+    ]
+
+
 @router.get("/dashboard-stats")
 def get_ngo_dashboard_stats(
     current_user: User = Depends(get_current_user),
@@ -68,7 +88,7 @@ def get_ngo_dashboard_stats(
         db.query(Donation)
         .filter(
             Donation.accepted_by_ngo_id == ngo.id,
-            Donation.status == "Accepted"
+            Donation.status.in_(["Accepted", "In Transit", "In_Transit"])
         )
         .all()
     )
@@ -79,7 +99,7 @@ def get_ngo_dashboard_stats(
         db.query(Donation)
         .filter(
             Donation.accepted_by_ngo_id == ngo.id,
-            Donation.status == "Completed"
+            Donation.status.in_(["Completed", "Delivered"])
         )
         .all()
     )
@@ -197,18 +217,35 @@ def get_my_accepted_donations(
         raise HTTPException(status_code=404, detail="NGO profile not found")
 
     results = (
-        db.query(Donation, Business)
+        db.query(Donation, Business, DeliveryTask, Volunteer)
         .join(Business, Donation.business_id == Business.id)
+        .outerjoin(DeliveryTask, Donation.id == DeliveryTask.donation_id)
+        .outerjoin(Volunteer, DeliveryTask.volunteer_id == Volunteer.id)
         .filter(
             Donation.accepted_by_ngo_id == ngo.id,
-            Donation.status == "Accepted"
+            Donation.status.in_(["Accepted", "In Transit", "In_Transit", "Delivered"])
         )
         .order_by(Donation.created_at.desc())
         .all()
     )
 
     response = []
-    for donation, business in results:
+    for donation, business, task, volunteer in results:
+        delivery_otp = str((donation.id * 243 + 7913) % 9000 + 1000)
+        if task and task.delivery_otp:
+            delivery_otp = task.delivery_otp
+
+        rider_info = None
+        if volunteer and task:
+            user_rider = db.query(User).filter(User.id == volunteer.user_id).first()
+            rider_info = {
+                "name": user_rider.name if user_rider else (volunteer.full_name or "Assigned Transport Rider"),
+                "phone": volunteer.phone or "+91 99887 76655",
+                "vehicle": volunteer.vehicle_type or "Bike",
+                "status": task.status,
+                "is_online": volunteer.is_online
+            }
+
         response.append({
             "id": donation.id,
             "food_name": donation.food_name,
@@ -220,10 +257,13 @@ def get_my_accepted_donations(
             "contact_person": donation.contact_person,
             "phone": donation.phone,
             "status": donation.status,
+            "delivery_otp": delivery_otp,
+            "delivery_otp_verified": bool(task.delivery_otp_verified) if task else False,
             "business": {
                 "business_name": business.business_name,
                 "phone": business.phone
-            }
+            },
+            "rider": rider_info
         })
 
     return response
@@ -243,7 +283,7 @@ def get_ngo_history(
         .join(Business, Donation.business_id == Business.id)
         .filter(
             Donation.accepted_by_ngo_id == ngo.id,
-            Donation.status.in_(["Completed", "Accepted"])
+            Donation.status.in_(["Completed", "Delivered"])
         )
         .order_by(Donation.created_at.desc())
         .all()
@@ -343,7 +383,17 @@ def complete_donation(
     if not donation:
         raise HTTPException(status_code=404, detail="Donation not found or not accepted by this NGO")
 
+    task = db.query(DeliveryTask).filter(DeliveryTask.donation_id == donation_id).first()
+    if task and not task.delivery_otp_verified:
+        raise HTTPException(
+            status_code=400,
+            detail="Cannot complete donation yet. The transport rider must verify the 4-digit Delivery Handover OTP upon arrival!"
+        )
+
     donation.status = "Completed"
+    if task:
+        task.status = "Delivered"
+
     db.commit()
     db.refresh(donation)
 

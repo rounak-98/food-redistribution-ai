@@ -9,9 +9,11 @@ import { Doughnut } from "react-chartjs-2";
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 export default function InventoryPieChart({ inventory = [] }) {
-  const fresh = inventory.filter(i => i.status === "Fresh").length;
-  const expiring = inventory.filter(i => i.status === "Expiring Soon").length;
-  const expired = inventory.filter(i => i.status === "Expired").length;
+  const safeInventory = Array.isArray(inventory) ? inventory : [];
+
+  const fresh = safeInventory.filter((i) => i?.status === "Fresh").length;
+  const expiring = safeInventory.filter((i) => i?.status === "Expiring Soon").length;
+  const expired = safeInventory.filter((i) => i?.status === "Expired").length;
 
   const data = {
     labels: ["Fresh", "Expiring", "Expired"],
