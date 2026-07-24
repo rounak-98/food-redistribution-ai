@@ -87,6 +87,81 @@ def login(
                 }
             }
 
+        elif result["user"].role == "individual":
+            return {
+                "message": "Login successful",
+                "access_token": result["access_token"],
+                "token_type": "bearer",
+                "user": {
+                    "id": result["user"].id,
+                    "name": result["user"].name,
+                    "email": result["user"].email,
+                    "role": result["user"].role,
+                },
+                "individual": {
+                    "id": result["profile"].id if result["profile"] else None,
+                    "full_name": result["profile"].full_name if result["profile"] else result["user"].name,
+                    "phone": result["profile"].phone if result["profile"] else "",
+                    "city": result["profile"].city if result["profile"] else "",
+                    "state": result["profile"].state if result["profile"] else "",
+                }
+            }
+
+        elif result["user"].role == "volunteer":
+            return {
+                "message": "Login successful",
+                "access_token": result["access_token"],
+                "token_type": "bearer",
+                "user": {
+                    "id": result["user"].id,
+                    "name": result["user"].name,
+                    "email": result["user"].email,
+                    "role": result["user"].role,
+                },
+                "volunteer": {
+                    "id": result["profile"].id if result["profile"] else None,
+                    "full_name": result["profile"].full_name if result["profile"] else result["user"].name,
+                    "vehicle_type": result["profile"].vehicle_type if result["profile"] else "Bike",
+                    "phone": result["profile"].phone if result["profile"] else "",
+                    "city": result["profile"].city if result["profile"] else "",
+                    "is_online": result["profile"].is_online if result["profile"] else True,
+                }
+            }
+
+        elif result["user"].role == "admin":
+            return {
+                "message": "Login successful",
+                "access_token": result["access_token"],
+                "token_type": "bearer",
+                "user": {
+                    "id": result["user"].id,
+                    "name": result["user"].name,
+                    "email": result["user"].email,
+                    "role": result["user"].role,
+                },
+                "admin": {
+                    "id": result["user"].id,
+                    "name": result["user"].name,
+                    "email": result["user"].email,
+                }
+            }
+
+
+
+        else:
+            return {
+                "message": "Login successful",
+                "access_token": result["access_token"],
+                "token_type": "bearer",
+                "user": {
+                    "id": result["user"].id,
+                    "name": result["user"].name,
+                    "email": result["user"].email,
+                    "role": result["user"].role,
+                }
+            }
+
+
     except ValueError as e:
         raise HTTPException(
             status_code=401,

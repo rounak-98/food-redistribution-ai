@@ -19,11 +19,36 @@ export default function NGOForm() {
         city: "",
         state: "",
         pincode: "",
+        latitude: "",
+        longitude: "",
         password: "",
         confirmPassword: "",
     });
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    const getCurrentLocation = () => {
+        if (!navigator.geolocation) {
+            alert("Geolocation is not supported by your browser.");
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                setFormData((prev) => ({
+                    ...prev,
+                    latitude: position.coords.latitude.toString(),
+                    longitude: position.coords.longitude.toString(),
+                }));
+
+                alert("Location captured successfully!");
+            },
+            (error) => {
+                console.error(error);
+                alert("Unable to get your location.");
+            }
+        );
     };
 
     const handleSubmit = async (e) => {
@@ -52,6 +77,8 @@ export default function NGOForm() {
                 city: formData.city,
                 state: formData.state,
                 pincode: formData.pincode,
+                latitude: formData.latitude,
+                longitude: formData.longitude,
             });
 
             setMessage("Registration successful! Redirecting...");
@@ -192,6 +219,15 @@ export default function NGOForm() {
             </div>
 
             <div className="flex flex-col md:flex-row md:justify-between gap-4">
+
+                <button
+                    type="button"
+                    onClick={getCurrentLocation}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl font-semibold"
+                >
+                    📍 Use Current Location
+                </button>
+
                 <button
                     type="submit"
                     disabled={loading}
@@ -210,4 +246,4 @@ export default function NGOForm() {
         </form>
     );
 
- }
+}

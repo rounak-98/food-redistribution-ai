@@ -44,6 +44,18 @@ export const deleteInventoryItem = async (itemId) => {
   return response.data;
 };
 
+export const autoDonateInventoryItem = async (itemId) => {
+  const response = await api.post(
+    `/api/inventory/${itemId}/auto-donate`
+  );
+
+  return response.data;
+};
+
+export const autoDonateItem = autoDonateInventoryItem;
+
+
+
 export async function getProductByBarcode(barcode) {
     const response = await fetch(`http://127.0.0.1:8000/barcode/${barcode}`);
 

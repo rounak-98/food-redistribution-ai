@@ -21,12 +21,38 @@ export default function BusinessForm() {
     city: "",
     state: "",
     pincode: "",
+    latitude: "",
+    longitude: "",
     password: "",
     confirmPassword: "",
   });
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+
+  const getCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser.");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setFormData((prev) => ({
+          ...prev,
+          latitude: position.coords.latitude.toString(),
+          longitude: position.coords.longitude.toString(),
+        }));
+
+        alert("Location captured successfully!");
+      },
+      (error) => {
+        alert("Unable to get location.");
+        console.error(error);
+      }
+    );
   };
 
   const handleSubmit = async (e) => {
@@ -57,6 +83,8 @@ export default function BusinessForm() {
         city: formData.city,
         state: formData.state,
         pincode: formData.pincode,
+        latitude: formData.latitude,
+        longitude: formData.longitude,
       });
 
       setMessage("Registration successful! Redirecting...");
@@ -107,17 +135,30 @@ export default function BusinessForm() {
       </div>
 
       <div className="flex flex-col md:flex-row md:justify-between gap-4">
-  <button
-    type="submit"
-    disabled={loading}
-    className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-xl font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed"
-  >
-    {loading ? "Creating Account..." : "Create Account"}
-  </button>
 
-        <Link to="/login" className="text-green-700 font-semibold hover:underline">
+        <button
+          type="button"
+          onClick={getCurrentLocation}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl font-semibold"
+        >
+          📍 Use Current Location
+        </button>
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-xl font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {loading ? "Creating Account..." : "Create Account"}
+        </button>
+
+        <Link
+          to="/login"
+          className="text-green-700 font-semibold hover:underline"
+        >
           Already have an account? Login
         </Link>
+
       </div>
     </form>
   );
