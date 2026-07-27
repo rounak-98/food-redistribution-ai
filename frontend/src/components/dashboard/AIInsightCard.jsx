@@ -3,7 +3,6 @@ import InsightMetric from "./InsightMetric";
 import RecommendationList from "./RecommendationList";
 
 export default function AIInsightCard({ inventory = [], title, value, description }) {
-  // If title/value/description are passed directly as a simple card:
   if (title) {
     return (
       <div className="bg-white rounded-2xl shadow-md p-6 border border-gray-100 space-y-2">
@@ -14,24 +13,26 @@ export default function AIInsightCard({ inventory = [], title, value, descriptio
     );
   }
 
-  // Full inventory AI insight analyzer:
   const safeInventory = Array.isArray(inventory) ? inventory : [];
 
   const expired = safeInventory.filter((item) => item?.status === "Expired");
   const expiring = safeInventory.filter((item) => item?.status === "Expiring Soon");
   const fresh = safeInventory.filter((item) => item?.status === "Fresh");
+  const donated = safeInventory.filter((item) => item?.status === "Donated");
 
   const total = safeInventory.length;
 
+  // Dynamic health score calculation
   const healthScore =
     total === 0
-      ? 98
-      : Math.round(((fresh.length + expiring.length * 0.5) / total) * 100);
+      ? 100
+      : Math.round(((fresh.length + donated.length + expiring.length * 0.5) / total) * 100);
 
   const wasteRisk = total === 0 ? 0 : Math.round((expired.length / total) * 100);
 
-  let assessment = "Healthy";
-  if (healthScore >= 90) assessment = "Excellent";
+  let assessment = "Optimal";
+  if (total === 0) assessment = "Optimal (Empty)";
+  else if (healthScore >= 90) assessment = "Excellent";
   else if (healthScore >= 75) assessment = "Healthy";
   else if (healthScore >= 60) assessment = "Needs Attention";
   else assessment = "Critical";
@@ -45,10 +46,10 @@ export default function AIInsightCard({ inventory = [], title, value, descriptio
     recommendations.push(`Donate ${expiring.length} product(s) nearing expiry.`);
   if (expired.length > 0)
     recommendations.push(`Remove ${expired.length} expired product(s) immediately.`);
-  if (fresh.length > total * 0.8)
-    recommendations.push("Inventory is in excellent condition.");
+  if (fresh.length > 0)
+    recommendations.push(`${fresh.length} fresh item(s) available in storage.`);
   if (recommendations.length === 0)
-    recommendations.push("No immediate action required. High redistribution availability.");
+    recommendations.push("No immediate action required. All items in good status.");
 
   return (
     <div className="bg-gradient-to-br from-green-50 to-white rounded-2xl shadow-lg p-8 border border-green-100">
