@@ -115,7 +115,9 @@ def seed_demo_data():
             db.add(biz1_profile)
             db.commit()
 
-            # Seed Inventory for Business 1
+        # Seed Inventory for Business 1 if empty
+        existing_inv = db.query(Inventory).filter(Inventory.business_id == biz1_profile.id).first()
+        if not existing_inv:
             inv_items = [
                 Inventory(
                     business_id=biz1_profile.id,
@@ -152,13 +154,27 @@ def seed_demo_data():
                     is_sealed=True,
                     spoilage_risk="High Risk",
                     status="Fresh"
+                ),
+                Inventory(
+                    business_id=biz1_profile.id,
+                    product_name="Organic Milk Pouches",
+                    quantity="30",
+                    unit="Litres",
+                    category="Dairy",
+                    expiry_date="2026-08-01",
+                    storage_temperature=3.5,
+                    is_sealed=True,
+                    spoilage_risk="Low Risk",
+                    status="Fresh"
                 )
             ]
             for item in inv_items:
                 db.add(item)
             db.commit()
 
-            # Seed Business 1 Donation
+        # Seed Business 1 Donations if empty
+        existing_don = db.query(Donation).filter(Donation.business_id == biz1_profile.id).first()
+        if not existing_don:
             d1 = Donation(
                 business_id=biz1_profile.id,
                 food_name="50 Portions Veg Biryani & Paneer Curry",
@@ -172,7 +188,22 @@ def seed_demo_data():
                 phone="9876543210",
                 status="Available"
             )
+            d2 = Donation(
+                business_id=biz1_profile.id,
+                food_name="20 Boxed Wheat Bread & Sandwiches",
+                quantity=20,
+                unit="Boxes",
+                food_category="Bakery",
+                expiry_date="Tomorrow by 2 PM",
+                pickup_time="Tomorrow 9 AM - 11 AM",
+                pickup_address="12 MG Road, Indiranagar",
+                contact_person="Rajesh Sharma",
+                phone="9876543210",
+                status="Accepted",
+                ngo_id=1
+            )
             db.add(d1)
+            db.add(d2)
             db.commit()
     except Exception as e:
         db.rollback()
@@ -214,6 +245,8 @@ def seed_demo_data():
             db.add(biz2_profile)
             db.commit()
 
+        existing_don2 = db.query(Donation).filter(Donation.business_id == biz2_profile.id).first()
+        if not existing_don2:
             d2 = Donation(
                 business_id=biz2_profile.id,
                 food_name="30 Crates Organic Apples & Bananas",
@@ -263,6 +296,8 @@ def seed_demo_data():
             db.add(ind1_profile)
             db.commit()
 
+        existing_ind_don = db.query(Donation).filter(Donation.individual_id == ind1_profile.id).first()
+        if not existing_ind_don:
             d3 = Donation(
                 individual_id=ind1_profile.id,
                 food_name="15 Homemade Stuffed Parathas",
@@ -392,19 +427,19 @@ def seed_demo_data():
             db.add(vol1_profile)
             db.commit()
 
-            # Assign delivery task if donations exist
-            sample_donation = db.query(Donation).first()
-            if sample_donation and not sample_donation.ngo_id:
-                sample_donation.ngo_id = 1
-                sample_donation.status = "Accepted"
-                db.commit()
-
+        # Seed Delivery Task if empty
+        existing_del = db.query(DeliveryTask).first()
+        if not existing_del:
+            accepted_don = db.query(Donation).filter(Donation.status == "Accepted").first()
+            if not accepted_don:
+                accepted_don = db.query(Donation).first()
+            if accepted_don and vol1_profile:
                 del_task = DeliveryTask(
-                    donation_id=sample_donation.id,
+                    donation_id=accepted_don.id,
                     volunteer_id=vol1_profile.id,
-                    pickup_address=sample_donation.pickup_address,
-                    pickup_contact_name=sample_donation.contact_person,
-                    pickup_contact_phone=sample_donation.phone,
+                    pickup_address=accepted_don.pickup_address,
+                    pickup_contact_name=accepted_don.contact_person,
+                    pickup_contact_phone=accepted_don.phone,
                     dropoff_address="45 Brigade Road, NGO Center",
                     dropoff_ngo_name="Asha Food Trust & Care",
                     dropoff_contact_phone="9123456789",
