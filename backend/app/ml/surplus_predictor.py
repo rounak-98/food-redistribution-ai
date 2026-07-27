@@ -3,11 +3,19 @@ import pandas as pd
 from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
 import joblib
 import os
+import re
 from datetime import datetime, timedelta
 
 MODEL_DIR = os.path.dirname(os.path.abspath(__file__))
 SURPLUS_MODEL_PATH = os.path.join(MODEL_DIR, "surplus_model.joblib")
 RISK_MODEL_PATH = os.path.join(MODEL_DIR, "risk_model.joblib")
+
+
+def safe_extract_int(val, default=10) -> int:
+    if not val:
+        return default
+    digits = re.findall(r'\d+', str(val))
+    return int(digits[0]) if digits else default
 
 
 def train_and_save_models():
@@ -82,7 +90,7 @@ def predict_weekly_surplus(inventory_items=None):
     total_stock = 50
     avg_shelf = 4
     if inventory_items and len(inventory_items) > 0:
-        total_stock = sum(int(getattr(item, 'quantity', 10) or 10) for item in inventory_items) // max(len(inventory_items), 1)
+        total_stock = sum(safe_extract_int(getattr(item, 'quantity', 10)) for item in inventory_items) // max(len(inventory_items), 1)
     
     today = datetime.now()
     days_name = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
