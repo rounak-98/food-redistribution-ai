@@ -11,7 +11,6 @@ load_dotenv()
 env_db_url = os.getenv("DATABASE_URL")
 
 if env_db_url:
-    # Fix legacy postgres:// prefix if used
     if env_db_url.startswith("postgres://"):
         env_db_url = env_db_url.replace("postgres://", "postgresql://", 1)
     DATABASE_URL = env_db_url
@@ -22,24 +21,40 @@ else:
     DB_USER = os.getenv("DB_USER", "root")
     DB_PASSWORD = os.getenv("DB_PASSWORD", "")
     
-    # Safe quote_plus for password string to prevent NoneType bytes error
     safe_password = quote_plus(str(DB_PASSWORD)) if DB_PASSWORD else ""
 
-    DATABASE_URL = (
-        f"mysql+pymysql://{DB_USER}:{safe_password}"
-        f"@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-    )
+    # If running on cloud environment (Render) without DB_HOST configured, use SQLite fallback
+    if os.getenv("RENDER") or (not os.getenv("DB_HOST") and not os.getenv("DB_USER")):
+        DATABASE_URL = "sqlite:///./foodbridge.db"
+    else:
+        DATABASE_URL = (
+            f"mysql+pymysql://{DB_USER}:{safe_password}"
+            f"@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+        )
 
 connect_args = {}
 if DATABASE_URL.startswith("sqlite"):
     connect_args = {"check_same_thread": False}
 
-engine = create_engine(
-    DATABASE_URL,
-    echo=False,
-    future=True,
-    connect_args=connect_args
-)
+try:
+    engine = create_engine(
+        DATABASE_URL,
+        echo=False,
+        future=True,
+        connect_args=connect_args
+    )
+    # Quick connectivity check
+    with engine.connect() as conn:
+        pass
+except Exception as e:
+    print(f"[INFO] Primary database connection ({DATABASE_URL}) unavailable. Using SQLite fallback: {e}")
+    DATABASE_URL = "sqlite:///./foodbridge.db"
+    engine = create_engine(
+        DATABASE_URL,
+        echo=False,
+        future=True,
+        connect_args={"check_same_thread": False}
+    )
 
 SessionLocal = sessionmaker(
     autocommit=False,
