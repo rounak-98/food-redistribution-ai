@@ -56,14 +56,14 @@ app.include_router(admin_router)
 app.include_router(ml_router)
 
 
-# Seed default admin user & initial platform demo data
+# Seed default demo accounts & initial platform demo data across all dashboards
 @app.on_event("startup")
 def seed_demo_data():
     from app.database.database import SessionLocal
     from app.auth.security import hash_password
     db = SessionLocal()
     try:
-        # Seed Admin
+        # 1. Seed Admin Account
         admin_user = db.query(User).filter(User.role == "admin").first()
         if not admin_user:
             admin_user = User(
@@ -74,9 +74,9 @@ def seed_demo_data():
             )
             db.add(admin_user)
             db.commit()
-            print("INFO: Created Admin: admin@foodbridge.com / admin123")
+            print("[SEED] Admin created: admin@foodbridge.com / admin123")
 
-        # Seed Demo Business
+        # 2. Seed Business Account & Inventory + Donations
         biz_user = db.query(User).filter(User.email == "restaurant@foodbridge.com").first()
         if not biz_user:
             biz_user = User(
@@ -106,7 +106,44 @@ def seed_demo_data():
             db.add(biz_profile)
             db.commit()
 
-            # Add sample donation
+            # Seed Sample Business Inventory Items
+            inv_items = [
+                Inventory(
+                    business_id=biz_profile.id,
+                    food_name="Fresh Veggie Salad Packets",
+                    quantity="40 Portions",
+                    category="Produce",
+                    expiry_date="2026-07-30",
+                    storage_temperature=4.5,
+                    is_sealed=True,
+                    spoilage_risk="Low Risk"
+                ),
+                Inventory(
+                    business_id=biz_profile.id,
+                    food_name="Artisanal Wheat Bread Loaves",
+                    quantity="25 Loaves",
+                    category="Bakery",
+                    expiry_date="2026-07-29",
+                    storage_temperature=22.0,
+                    is_sealed=True,
+                    spoilage_risk="Medium Risk"
+                ),
+                Inventory(
+                    business_id=biz_profile.id,
+                    food_name="Steam Rice & Dal Combo",
+                    quantity="60 Meals",
+                    category="Cooked Meals",
+                    expiry_date="2026-07-28",
+                    storage_temperature=65.0,
+                    is_sealed=True,
+                    spoilage_risk="High Risk"
+                )
+            ]
+            for item in inv_items:
+                db.add(item)
+            db.commit()
+
+            # Seed Sample Business Donation
             d1 = Donation(
                 business_id=biz_profile.id,
                 food_name="50 Portions Veg Biryani & Paneer Curry",
@@ -122,8 +159,51 @@ def seed_demo_data():
             )
             db.add(d1)
             db.commit()
+            print("[SEED] Business created: restaurant@foodbridge.com / biz123")
 
-        # Seed Demo NGO
+        # 3. Seed Individual Donor Account
+        ind_user = db.query(User).filter(User.email == "individual@foodbridge.com").first()
+        if not ind_user:
+            ind_user = User(
+                name="Ananya Roy",
+                email="individual@foodbridge.com",
+                password_hash=hash_password("ind123"),
+                role="individual"
+            )
+            db.add(ind_user)
+            db.commit()
+
+            ind_profile = Individual(
+                user_id=ind_user.id,
+                full_name="Ananya Roy",
+                phone="9811223344",
+                address="78 Koramangala 4th Block",
+                city="Bengaluru",
+                state="Karnataka",
+                pincode="560034"
+            )
+            db.add(ind_profile)
+            db.commit()
+
+            # Seed Individual Home Food Post
+            ind_d = Donation(
+                individual_id=ind_profile.id,
+                food_name="15 Fresh Homemade Stuffed Parathas",
+                quantity=15,
+                unit="Portions",
+                food_category="Cooked Meal",
+                expiry_date="Today before 9 PM",
+                pickup_time="Immediate Pickup",
+                pickup_address="78 Koramangala 4th Block",
+                contact_person="Ananya Roy",
+                phone="9811223344",
+                status="Available"
+            )
+            db.add(ind_d)
+            db.commit()
+            print("[SEED] Individual created: individual@foodbridge.com / ind123")
+
+        # 4. Seed NGO Account & Profile
         ngo_user = db.query(User).filter(User.email == "ngo@foodbridge.com").first()
         if not ngo_user:
             ngo_user = User(
@@ -151,8 +231,9 @@ def seed_demo_data():
             )
             db.add(ngo_profile)
             db.commit()
+            print("[SEED] NGO created: ngo@foodbridge.com / ngo123")
 
-        # Seed Demo Volunteer Rider
+        # 5. Seed Volunteer Transport Rider Account & Profile
         vol_user = db.query(User).filter(User.email == "rider@foodbridge.com").first()
         if not vol_user:
             vol_user = User(
@@ -179,9 +260,10 @@ def seed_demo_data():
             )
             db.add(vol_profile)
             db.commit()
+            print("[SEED] Volunteer created: rider@foodbridge.com / rider123")
 
     except Exception as e:
-        print("Error seeding demo data:", e)
+        print("[SEED ERROR] Error seeding demo data:", e)
     finally:
         db.close()
 
