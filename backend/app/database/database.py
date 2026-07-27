@@ -2,27 +2,43 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 from dotenv import load_dotenv
 import os
+from urllib.parse import quote_plus
 
 # Load environment variables
 load_dotenv()
 
-DB_HOST = os.getenv("DB_HOST")
-DB_PORT = os.getenv("DB_PORT")
-DB_NAME = os.getenv("DB_NAME")
-DB_USER = os.getenv("DB_USER")
-DB_PASSWORD = os.getenv("DB_PASSWORD")
+# Check if direct DATABASE_URL is provided (e.g. from Render/Railway/Heroku)
+env_db_url = os.getenv("DATABASE_URL")
 
-from urllib.parse import quote_plus
+if env_db_url:
+    # Fix legacy postgres:// prefix if used
+    if env_db_url.startswith("postgres://"):
+        env_db_url = env_db_url.replace("postgres://", "postgresql://", 1)
+    DATABASE_URL = env_db_url
+else:
+    DB_HOST = os.getenv("DB_HOST", "localhost")
+    DB_PORT = os.getenv("DB_PORT", "3306")
+    DB_NAME = os.getenv("DB_NAME", "food_redistribution_db")
+    DB_USER = os.getenv("DB_USER", "root")
+    DB_PASSWORD = os.getenv("DB_PASSWORD", "")
+    
+    # Safe quote_plus for password string to prevent NoneType bytes error
+    safe_password = quote_plus(str(DB_PASSWORD)) if DB_PASSWORD else ""
 
-DATABASE_URL = (
-    f"mysql+pymysql://{DB_USER}:{quote_plus(DB_PASSWORD)}"
-    f"@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-)
+    DATABASE_URL = (
+        f"mysql+pymysql://{DB_USER}:{safe_password}"
+        f"@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+    )
+
+connect_args = {}
+if DATABASE_URL.startswith("sqlite"):
+    connect_args = {"check_same_thread": False}
 
 engine = create_engine(
     DATABASE_URL,
     echo=False,
     future=True,
+    connect_args=connect_args
 )
 
 SessionLocal = sessionmaker(
