@@ -61,10 +61,11 @@ app.include_router(ml_router)
 def seed_demo_data():
     from app.database.database import SessionLocal
     from app.auth.security import hash_password
+
+    # --- 1. Admin Account ---
     db = SessionLocal()
     try:
-        # 1. Seed Admin Account
-        admin_user = db.query(User).filter(User.role == "admin").first()
+        admin_user = db.query(User).filter(User.email == "admin@foodbridge.com").first()
         if not admin_user:
             admin_user = User(
                 name="System Administrator",
@@ -74,8 +75,15 @@ def seed_demo_data():
             )
             db.add(admin_user)
             db.commit()
+    except Exception as e:
+        db.rollback()
+        print("[SEED ADMIN ERROR]:", e)
+    finally:
+        db.close()
 
-        # 2. Seed Business Accounts & Profiles
+    # --- 2. Business Account 1 (Hotel & Restaurant) ---
+    db = SessionLocal()
+    try:
         biz1_user = db.query(User).filter(User.email == "restaurant@foodbridge.com").first()
         if not biz1_user:
             biz1_user = User(
@@ -87,6 +95,8 @@ def seed_demo_data():
             db.add(biz1_user)
             db.commit()
 
+        biz1_profile = db.query(Business).filter(Business.user_id == biz1_user.id).first()
+        if not biz1_profile:
             biz1_profile = Business(
                 user_id=biz1_user.id,
                 business_name="Royal Palace Hotel & Bakery",
@@ -142,18 +152,6 @@ def seed_demo_data():
                     is_sealed=True,
                     spoilage_risk="High Risk",
                     status="Fresh"
-                ),
-                Inventory(
-                    business_id=biz1_profile.id,
-                    product_name="Organic Milk Pouches",
-                    quantity="30",
-                    unit="Litres",
-                    category="Dairy",
-                    expiry_date="2026-08-01",
-                    storage_temperature=3.5,
-                    is_sealed=True,
-                    spoilage_risk="Low Risk",
-                    status="Fresh"
                 )
             ]
             for item in inv_items:
@@ -176,8 +174,15 @@ def seed_demo_data():
             )
             db.add(d1)
             db.commit()
+    except Exception as e:
+        db.rollback()
+        print("[SEED BIZ1 ERROR]:", e)
+    finally:
+        db.close()
 
-        # Seed Business 2 (Supermarket)
+    # --- 3. Business Account 2 (Supermarket) ---
+    db = SessionLocal()
+    try:
         biz2_user = db.query(User).filter(User.email == "supermarket@foodbridge.com").first()
         if not biz2_user:
             biz2_user = User(
@@ -189,6 +194,8 @@ def seed_demo_data():
             db.add(biz2_user)
             db.commit()
 
+        biz2_profile = db.query(Business).filter(Business.user_id == biz2_user.id).first()
+        if not biz2_profile:
             biz2_profile = Business(
                 user_id=biz2_user.id,
                 business_name="FreshMart Organics Supermarket",
@@ -222,8 +229,15 @@ def seed_demo_data():
             )
             db.add(d2)
             db.commit()
+    except Exception as e:
+        db.rollback()
+        print("[SEED BIZ2 ERROR]:", e)
+    finally:
+        db.close()
 
-        # 3. Seed Individual Donors
+    # --- 4. Individual Donor Account ---
+    db = SessionLocal()
+    try:
         ind1_user = db.query(User).filter(User.email == "individual@foodbridge.com").first()
         if not ind1_user:
             ind1_user = User(
@@ -235,6 +249,8 @@ def seed_demo_data():
             db.add(ind1_user)
             db.commit()
 
+        ind1_profile = db.query(Individual).filter(Individual.user_id == ind1_user.id).first()
+        if not ind1_profile:
             ind1_profile = Individual(
                 user_id=ind1_user.id,
                 full_name="Ananya Roy",
@@ -262,8 +278,15 @@ def seed_demo_data():
             )
             db.add(d3)
             db.commit()
+    except Exception as e:
+        db.rollback()
+        print("[SEED IND ERROR]:", e)
+    finally:
+        db.close()
 
-        # 4. Seed NGO Accounts
+    # --- 5. NGO Account 1 ---
+    db = SessionLocal()
+    try:
         ngo1_user = db.query(User).filter(User.email == "ngo@foodbridge.com").first()
         if not ngo1_user:
             ngo1_user = User(
@@ -275,6 +298,8 @@ def seed_demo_data():
             db.add(ngo1_user)
             db.commit()
 
+        ngo1_profile = db.query(NGO).filter(NGO.user_id == ngo1_user.id).first()
+        if not ngo1_profile:
             ngo1_profile = NGO(
                 user_id=ngo1_user.id,
                 ngo_name="Asha Food Trust & Care",
@@ -291,8 +316,53 @@ def seed_demo_data():
             )
             db.add(ngo1_profile)
             db.commit()
+    except Exception as e:
+        db.rollback()
+        print("[SEED NGO ERROR]:", e)
+    finally:
+        db.close()
 
-        # 5. Seed Volunteer Riders
+    # --- 6. NGO Account 2 ---
+    db = SessionLocal()
+    try:
+        ngo2_user = db.query(User).filter(User.email == "annapoorna@foodbridge.com").first()
+        if not ngo2_user:
+            ngo2_user = User(
+                name="Annapoorna Community Kitchen",
+                email="annapoorna@foodbridge.com",
+                password_hash=hash_password("ngo123"),
+                role="ngo"
+            )
+            db.add(ngo2_user)
+            db.commit()
+
+        ngo2_profile = db.query(NGO).filter(NGO.user_id == ngo2_user.id).first()
+        if not ngo2_profile:
+            ngo2_profile = NGO(
+                user_id=ngo2_user.id,
+                ngo_name="Annapoorna Community Kitchen",
+                registration_number="NGO-KAR-2024-102",
+                contact_person="Suresh Patel",
+                phone="9876501234",
+                email="annapoorna@foodbridge.com",
+                address="102 Jayanagar 4th Block",
+                city="Bengaluru",
+                state="Karnataka",
+                pincode="560011",
+                latitude="12.9250",
+                longitude="77.5938"
+            )
+            db.add(ngo2_profile)
+            db.commit()
+    except Exception as e:
+        db.rollback()
+        print("[SEED NGO2 ERROR]:", e)
+    finally:
+        db.close()
+
+    # --- 7. Volunteer Transport Rider Account 1 ---
+    db = SessionLocal()
+    try:
         vol1_user = db.query(User).filter(User.email == "rider@foodbridge.com").first()
         if not vol1_user:
             vol1_user = User(
@@ -304,6 +374,8 @@ def seed_demo_data():
             db.add(vol1_user)
             db.commit()
 
+        vol1_profile = db.query(Volunteer).filter(Volunteer.user_id == vol1_user.id).first()
+        if not vol1_profile:
             vol1_profile = Volunteer(
                 user_id=vol1_user.id,
                 full_name="Vikram Singh",
@@ -320,19 +392,19 @@ def seed_demo_data():
             db.add(vol1_profile)
             db.commit()
 
-            # Link a sample Claimed donation & Delivery Task for logistics demo
-            claimed_d = db.query(Donation).first()
-            if claimed_d:
-                claimed_d.ngo_id = 1
-                claimed_d.status = "Accepted"
+            # Assign delivery task if donations exist
+            sample_donation = db.query(Donation).first()
+            if sample_donation and not sample_donation.ngo_id:
+                sample_donation.ngo_id = 1
+                sample_donation.status = "Accepted"
                 db.commit()
 
                 del_task = DeliveryTask(
-                    donation_id=claimed_d.id,
+                    donation_id=sample_donation.id,
                     volunteer_id=vol1_profile.id,
-                    pickup_address=claimed_d.pickup_address,
-                    pickup_contact_name=claimed_d.contact_person,
-                    pickup_contact_phone=claimed_d.phone,
+                    pickup_address=sample_donation.pickup_address,
+                    pickup_contact_name=sample_donation.contact_person,
+                    pickup_contact_phone=sample_donation.phone,
                     dropoff_address="45 Brigade Road, NGO Center",
                     dropoff_ngo_name="Asha Food Trust & Care",
                     dropoff_contact_phone="9123456789",
@@ -345,11 +417,18 @@ def seed_demo_data():
                 )
                 db.add(del_task)
                 db.commit()
-
     except Exception as e:
-        print("[SEED ERROR] Error seeding demo data:", e)
+        db.rollback()
+        print("[SEED VOL1 ERROR]:", e)
     finally:
         db.close()
+
+
+@app.get("/api/seed-now")
+def trigger_seed_now():
+    """Manual endpoint to trigger seed data creation anytime"""
+    seed_demo_data()
+    return {"message": "Demo data seeding executed successfully!"}
 
 
 @app.get("/")
