@@ -241,7 +241,7 @@ export default function BusinessDashboard() {
             <QuickActionCard
               title="Add Donation"
               icon="➕"
-              path="/donations/new"
+              path="/donations/add"
               description="Donate surplus food directly to verified partner NGOs"
               buttonText="Create Donation"
             />
@@ -255,7 +255,7 @@ export default function BusinessDashboard() {
             <QuickActionCard
               title="Donation History"
               icon="📜"
-              path="/history"
+              path="/donations/history"
               description="Track past food donations and claimed pickups"
               buttonText="View History"
             />

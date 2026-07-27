@@ -1,13 +1,21 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react";
 
-export default function QuickActionCard({ title, icon = "⚡", path, link, description, buttonText }) {
+export default function QuickActionCard({ title, icon = "⚡", path, link, description, buttonText, onClick }) {
   const navigate = useNavigate();
   const targetPath = path || link;
 
+  const handleClick = () => {
+    if (onClick) {
+      onClick();
+    } else if (targetPath && targetPath !== "#") {
+      navigate(targetPath);
+    }
+  };
+
   return (
     <button
-      onClick={() => targetPath && navigate(targetPath)}
-      className="bg-white rounded-3xl p-6 shadow-sm hover:shadow-md border border-slate-100 hover-lift transition-all duration-300 text-left w-full group relative overflow-hidden flex flex-col justify-between"
+      onClick={handleClick}
+      className="bg-white rounded-3xl p-6 shadow-sm hover:shadow-md border border-slate-100 hover-lift transition-all duration-300 text-left w-full group relative overflow-hidden flex flex-col justify-between cursor-pointer"
     >
       <div className="flex items-start justify-between mb-4">
         <div className="w-12 h-12 rounded-2xl bg-slate-100 group-hover:bg-indigo-600 group-hover:text-white transition-colors duration-300 flex items-center justify-center text-2xl shadow-sm">

@@ -187,7 +187,7 @@ export default function IndividualDashboard() {
                 <QuickActionCard
                   title="Post Home Food"
                   icon="➕"
-                  path="#"
+                  onClick={() => setIsModalOpen(true)}
                 />
                 <QuickActionCard
                   title="My Home Donations"
