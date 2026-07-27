@@ -95,6 +95,7 @@ def seed_demo_data():
                 owner_name="Rajesh Sharma",
                 fssai_number="100200300400",
                 gst_number="29ABCDE1234F1ZH",
+                phone="9876543210",
                 address="12 MG Road, Indiranagar",
                 city="Bengaluru",
                 state="Karnataka",
