@@ -20,6 +20,7 @@ from app.api.business import router as business_router
 from app.api.individual import router as individual_router
 from app.api.volunteer import router as volunteer_router
 from app.api.admin import router as admin_router
+from app.api.ml_routes import router as ml_router
 
 # Create all database tables
 Base.metadata.create_all(bind=engine)
@@ -52,6 +53,7 @@ app.include_router(business_router)
 app.include_router(individual_router)
 app.include_router(volunteer_router)
 app.include_router(admin_router)
+app.include_router(ml_router)
 
 
 # Seed default admin user & initial platform demo data
