@@ -22,7 +22,7 @@ from app.api.volunteer import router as volunteer_router
 from app.api.admin import router as admin_router
 from app.api.ml_routes import router as ml_router
 
-# Create all database tables
+# Create database tables if missing
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
@@ -39,6 +39,7 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
+# Application Routers
 app.include_router(auth_router)
 app.include_router(donation_router)
 app.include_router(inventory_router)
@@ -56,16 +57,15 @@ app.include_router(admin_router)
 app.include_router(ml_router)
 
 
-# Seed comprehensive demo accounts & initial platform demo data across all tables and dashboards
+# Startup initialization for default admin account
 @app.on_event("startup")
-def seed_demo_data():
+def init_admin():
     from app.database.database import SessionLocal
     from app.auth.security import hash_password
 
-    # --- 1. Admin Account ---
     db = SessionLocal()
     try:
-        admin_user = db.query(User).filter(User.email == "admin@foodbridge.com").first()
+        admin_user = db.query(User).filter(User.role == "admin").first()
         if not admin_user:
             admin_user = User(
                 name="System Administrator",
@@ -75,395 +75,12 @@ def seed_demo_data():
             )
             db.add(admin_user)
             db.commit()
+            print("[INFO] Default admin user verified.")
     except Exception as e:
         db.rollback()
-        print("[SEED ADMIN ERROR]:", e)
+        print("[INIT ADMIN ERROR]:", e)
     finally:
         db.close()
-
-    # --- 2. Business Account 1 (Hotel & Restaurant) ---
-    db = SessionLocal()
-    try:
-        biz1_user = db.query(User).filter(User.email == "restaurant@foodbridge.com").first()
-        if not biz1_user:
-            biz1_user = User(
-                name="Royal Palace Hotel & Bakery",
-                email="restaurant@foodbridge.com",
-                password_hash=hash_password("biz123"),
-                role="business"
-            )
-            db.add(biz1_user)
-            db.commit()
-
-        biz1_profile = db.query(Business).filter(Business.user_id == biz1_user.id).first()
-        if not biz1_profile:
-            biz1_profile = Business(
-                user_id=biz1_user.id,
-                business_name="Royal Palace Hotel & Bakery",
-                business_type="Hotel & Restaurant",
-                owner_name="Rajesh Sharma",
-                fssai_number="100200300400",
-                gst_number="29ABCDE1234F1ZH",
-                phone="9876543210",
-                address="12 MG Road, Indiranagar",
-                city="Bengaluru",
-                state="Karnataka",
-                pincode="560038",
-                latitude="12.9716",
-                longitude="77.5946"
-            )
-            db.add(biz1_profile)
-            db.commit()
-
-        # Seed Inventory for Business 1 if empty
-        existing_inv = db.query(Inventory).filter(Inventory.business_id == biz1_profile.id).first()
-        if not existing_inv:
-            inv_items = [
-                Inventory(
-                    business_id=biz1_profile.id,
-                    product_name="Fresh Veggie Salad Packets",
-                    quantity="40",
-                    unit="Portions",
-                    category="Produce",
-                    expiry_date="2026-07-30",
-                    storage_temperature=4.5,
-                    is_sealed=True,
-                    spoilage_risk="Low Risk",
-                    status="Fresh"
-                ),
-                Inventory(
-                    business_id=biz1_profile.id,
-                    product_name="Artisanal Wheat Bread Loaves",
-                    quantity="25",
-                    unit="Loaves",
-                    category="Bakery",
-                    expiry_date="2026-07-29",
-                    storage_temperature=22.0,
-                    is_sealed=True,
-                    spoilage_risk="Medium Risk",
-                    status="Expiring Soon"
-                ),
-                Inventory(
-                    business_id=biz1_profile.id,
-                    product_name="Steam Rice & Dal Combo",
-                    quantity="60",
-                    unit="Meals",
-                    category="Cooked Meals",
-                    expiry_date="2026-07-28",
-                    storage_temperature=65.0,
-                    is_sealed=True,
-                    spoilage_risk="High Risk",
-                    status="Fresh"
-                ),
-                Inventory(
-                    business_id=biz1_profile.id,
-                    product_name="Organic Milk Pouches",
-                    quantity="30",
-                    unit="Litres",
-                    category="Dairy",
-                    expiry_date="2026-08-01",
-                    storage_temperature=3.5,
-                    is_sealed=True,
-                    spoilage_risk="Low Risk",
-                    status="Fresh"
-                )
-            ]
-            for item in inv_items:
-                db.add(item)
-            db.commit()
-
-        # Seed Business 1 Donations if empty
-        existing_don = db.query(Donation).filter(Donation.business_id == biz1_profile.id).first()
-        if not existing_don:
-            d1 = Donation(
-                business_id=biz1_profile.id,
-                food_name="50 Portions Veg Biryani & Paneer Curry",
-                quantity=50,
-                unit="Portions",
-                food_category="Cooked Meals",
-                expiry_date="Today before 10 PM",
-                pickup_time="Today 7 PM - 9 PM",
-                pickup_address="12 MG Road, Indiranagar",
-                contact_person="Rajesh Sharma",
-                phone="9876543210",
-                status="Available"
-            )
-            d2 = Donation(
-                business_id=biz1_profile.id,
-                food_name="20 Boxed Wheat Bread & Sandwiches",
-                quantity=20,
-                unit="Boxes",
-                food_category="Bakery",
-                expiry_date="Tomorrow by 2 PM",
-                pickup_time="Tomorrow 9 AM - 11 AM",
-                pickup_address="12 MG Road, Indiranagar",
-                contact_person="Rajesh Sharma",
-                phone="9876543210",
-                status="Accepted",
-                ngo_id=1
-            )
-            db.add(d1)
-            db.add(d2)
-            db.commit()
-    except Exception as e:
-        db.rollback()
-        print("[SEED BIZ1 ERROR]:", e)
-    finally:
-        db.close()
-
-    # --- 3. Business Account 2 (Supermarket) ---
-    db = SessionLocal()
-    try:
-        biz2_user = db.query(User).filter(User.email == "supermarket@foodbridge.com").first()
-        if not biz2_user:
-            biz2_user = User(
-                name="FreshMart Organics Supermarket",
-                email="supermarket@foodbridge.com",
-                password_hash=hash_password("biz123"),
-                role="business"
-            )
-            db.add(biz2_user)
-            db.commit()
-
-        biz2_profile = db.query(Business).filter(Business.user_id == biz2_user.id).first()
-        if not biz2_profile:
-            biz2_profile = Business(
-                user_id=biz2_user.id,
-                business_name="FreshMart Organics Supermarket",
-                business_type="Supermarket",
-                owner_name="Sunil Kumar",
-                fssai_number="100900800700",
-                gst_number="29XYZAB5678G2ZK",
-                phone="9845012345",
-                address="56 Commercial Street",
-                city="Bengaluru",
-                state="Karnataka",
-                pincode="560001",
-                latitude="12.9810",
-                longitude="77.6080"
-            )
-            db.add(biz2_profile)
-            db.commit()
-
-        existing_don2 = db.query(Donation).filter(Donation.business_id == biz2_profile.id).first()
-        if not existing_don2:
-            d2 = Donation(
-                business_id=biz2_profile.id,
-                food_name="30 Crates Organic Apples & Bananas",
-                quantity=30,
-                unit="Crates",
-                food_category="Produce",
-                expiry_date="Tomorrow by 6 PM",
-                pickup_time="Tomorrow 10 AM - 1 PM",
-                pickup_address="56 Commercial Street",
-                contact_person="Sunil Kumar",
-                phone="9845012345",
-                status="Available"
-            )
-            db.add(d2)
-            db.commit()
-    except Exception as e:
-        db.rollback()
-        print("[SEED BIZ2 ERROR]:", e)
-    finally:
-        db.close()
-
-    # --- 4. Individual Donor Account ---
-    db = SessionLocal()
-    try:
-        ind1_user = db.query(User).filter(User.email == "individual@foodbridge.com").first()
-        if not ind1_user:
-            ind1_user = User(
-                name="Ananya Roy",
-                email="individual@foodbridge.com",
-                password_hash=hash_password("ind123"),
-                role="individual"
-            )
-            db.add(ind1_user)
-            db.commit()
-
-        ind1_profile = db.query(Individual).filter(Individual.user_id == ind1_user.id).first()
-        if not ind1_profile:
-            ind1_profile = Individual(
-                user_id=ind1_user.id,
-                full_name="Ananya Roy",
-                phone="9811223344",
-                address="78 Koramangala 4th Block",
-                city="Bengaluru",
-                state="Karnataka",
-                pincode="560034"
-            )
-            db.add(ind1_profile)
-            db.commit()
-
-        existing_ind_don = db.query(Donation).filter(Donation.individual_id == ind1_profile.id).first()
-        if not existing_ind_don:
-            d3 = Donation(
-                individual_id=ind1_profile.id,
-                food_name="15 Homemade Stuffed Parathas",
-                quantity=15,
-                unit="Portions",
-                food_category="Cooked Meals",
-                expiry_date="Today before 9 PM",
-                pickup_time="Immediate Pickup",
-                pickup_address="78 Koramangala 4th Block",
-                contact_person="Ananya Roy",
-                phone="9811223344",
-                status="Available"
-            )
-            db.add(d3)
-            db.commit()
-    except Exception as e:
-        db.rollback()
-        print("[SEED IND ERROR]:", e)
-    finally:
-        db.close()
-
-    # --- 5. NGO Account 1 ---
-    db = SessionLocal()
-    try:
-        ngo1_user = db.query(User).filter(User.email == "ngo@foodbridge.com").first()
-        if not ngo1_user:
-            ngo1_user = User(
-                name="Asha Food Trust & Care",
-                email="ngo@foodbridge.com",
-                password_hash=hash_password("ngo123"),
-                role="ngo"
-            )
-            db.add(ngo1_user)
-            db.commit()
-
-        ngo1_profile = db.query(NGO).filter(NGO.user_id == ngo1_user.id).first()
-        if not ngo1_profile:
-            ngo1_profile = NGO(
-                user_id=ngo1_user.id,
-                ngo_name="Asha Food Trust & Care",
-                registration_number="NGO-KAR-2023-88",
-                contact_person="Priya Nair",
-                phone="9123456789",
-                email="ngo@foodbridge.com",
-                address="45 Brigade Road",
-                city="Bengaluru",
-                state="Karnataka",
-                pincode="560001",
-                latitude="12.9720",
-                longitude="77.5950"
-            )
-            db.add(ngo1_profile)
-            db.commit()
-    except Exception as e:
-        db.rollback()
-        print("[SEED NGO ERROR]:", e)
-    finally:
-        db.close()
-
-    # --- 6. NGO Account 2 ---
-    db = SessionLocal()
-    try:
-        ngo2_user = db.query(User).filter(User.email == "annapoorna@foodbridge.com").first()
-        if not ngo2_user:
-            ngo2_user = User(
-                name="Annapoorna Community Kitchen",
-                email="annapoorna@foodbridge.com",
-                password_hash=hash_password("ngo123"),
-                role="ngo"
-            )
-            db.add(ngo2_user)
-            db.commit()
-
-        ngo2_profile = db.query(NGO).filter(NGO.user_id == ngo2_user.id).first()
-        if not ngo2_profile:
-            ngo2_profile = NGO(
-                user_id=ngo2_user.id,
-                ngo_name="Annapoorna Community Kitchen",
-                registration_number="NGO-KAR-2024-102",
-                contact_person="Suresh Patel",
-                phone="9876501234",
-                email="annapoorna@foodbridge.com",
-                address="102 Jayanagar 4th Block",
-                city="Bengaluru",
-                state="Karnataka",
-                pincode="560011",
-                latitude="12.9250",
-                longitude="77.5938"
-            )
-            db.add(ngo2_profile)
-            db.commit()
-    except Exception as e:
-        db.rollback()
-        print("[SEED NGO2 ERROR]:", e)
-    finally:
-        db.close()
-
-    # --- 7. Volunteer Transport Rider Account 1 ---
-    db = SessionLocal()
-    try:
-        vol1_user = db.query(User).filter(User.email == "rider@foodbridge.com").first()
-        if not vol1_user:
-            vol1_user = User(
-                name="Vikram Transport Rider",
-                email="rider@foodbridge.com",
-                password_hash=hash_password("rider123"),
-                role="volunteer"
-            )
-            db.add(vol1_user)
-            db.commit()
-
-        vol1_profile = db.query(Volunteer).filter(Volunteer.user_id == vol1_user.id).first()
-        if not vol1_profile:
-            vol1_profile = Volunteer(
-                user_id=vol1_user.id,
-                full_name="Vikram Singh",
-                phone="9988776655",
-                vehicle_type="Motorcycle / Scooter",
-                vehicle_number="KA-01-EV-4321",
-                city="Bengaluru",
-                state="Karnataka",
-                pincode="560038",
-                latitude="12.9715",
-                longitude="77.5945",
-                is_online=True
-            )
-            db.add(vol1_profile)
-            db.commit()
-
-        # Seed Delivery Task if empty
-        existing_del = db.query(DeliveryTask).first()
-        if not existing_del:
-            accepted_don = db.query(Donation).filter(Donation.status == "Accepted").first()
-            if not accepted_don:
-                accepted_don = db.query(Donation).first()
-            if accepted_don and vol1_profile:
-                del_task = DeliveryTask(
-                    donation_id=accepted_don.id,
-                    volunteer_id=vol1_profile.id,
-                    pickup_address=accepted_don.pickup_address,
-                    pickup_contact_name=accepted_don.contact_person,
-                    pickup_contact_phone=accepted_don.phone,
-                    dropoff_address="45 Brigade Road, NGO Center",
-                    dropoff_ngo_name="Asha Food Trust & Care",
-                    dropoff_contact_phone="9123456789",
-                    status="In_Transit",
-                    pickup_otp="4821",
-                    delivery_otp="7913",
-                    pickup_otp_verified=True,
-                    delivery_otp_verified=False,
-                    notes="Perishable hot food delivery in insulated thermal bag."
-                )
-                db.add(del_task)
-                db.commit()
-    except Exception as e:
-        db.rollback()
-        print("[SEED VOL1 ERROR]:", e)
-    finally:
-        db.close()
-
-
-@app.get("/api/seed-now")
-def trigger_seed_now():
-    """Manual endpoint to trigger seed data creation anytime"""
-    seed_demo_data()
-    return {"message": "Demo data seeding executed successfully!"}
 
 
 @app.get("/")
