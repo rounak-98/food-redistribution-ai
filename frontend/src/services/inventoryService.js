@@ -18,9 +18,7 @@ export const addInventory = async (data) => {
 };
 
 export const uploadInventoryCSV = async (businessId, file) => {
-
   const formData = new FormData();
-
   formData.append("file", file);
 
   const response = await api.post(
@@ -54,14 +52,7 @@ export const autoDonateInventoryItem = async (itemId) => {
 
 export const autoDonateItem = autoDonateInventoryItem;
 
-
-
 export async function getProductByBarcode(barcode) {
-    const response = await fetch(`http://127.0.0.1:8000/barcode/${barcode}`);
-
-    if (!response.ok) {
-        throw new Error("Product not found");
-    }
-
-    return await response.json();
+  const response = await api.get(`/barcode/${barcode}`);
+  return response.data;
 }
