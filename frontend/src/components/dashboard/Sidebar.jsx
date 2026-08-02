@@ -1,18 +1,20 @@
-
 import { NavLink } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 export default function Sidebar({ collapsed, setCollapsed }) {
+  const { t } = useTranslation();
+
   const menu = [
-    { name: "Dashboard", path: "/dashboard/business", icon: "🏠" },
-    { name: "Inventory", path: "/inventory", icon: "📦" },
-    { name: "Donations", path: "/donations/history", icon: "🍱" },
-    { name: "Insights", path: "/analytics", icon: "📊" },
+    { name: t("nav.dashboard"), path: "/dashboard/business", icon: "🏠" },
+    { name: t("nav.inventory"), path: "/inventory", icon: "📦" },
+    { name: t("nav.donations"), path: "/donations/history", icon: "🍱" },
+    { name: t("nav.analytics"), path: "/analytics", icon: "📊" },
     { name: "Profile", path: "/profile", icon: "👤" },
     { name: "Alerts", path: "/alerts", icon: "🔔" },
   ];
 
-  const user = JSON.parse(localStorage.getItem("user"));
-  const profile = JSON.parse(localStorage.getItem("profile"));
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const profile = JSON.parse(localStorage.getItem("profile") || "{}");
 
   const accountName =
     user?.role === "ngo"
@@ -21,8 +23,8 @@ export default function Sidebar({ collapsed, setCollapsed }) {
 
   const accountType =
     user?.role === "ngo"
-      ? "NGO Account"
-      : "Business Account";
+      ? t("roles.ngo")
+      : t("roles.business");
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -33,17 +35,17 @@ export default function Sidebar({ collapsed, setCollapsed }) {
 
   return (
     <aside
-      className={`fixed left-0 top-0 h-screen bg-green-700 text-white flex flex-col transition-all duration-300 ${collapsed ? "w-20" : "w-64"
-        }`}
+      className={`fixed left-0 top-0 h-screen bg-green-700 text-white flex flex-col transition-all duration-300 ${
+        collapsed ? "w-20" : "w-64"
+      }`}
     >
-
       <div
-        className={`border-b border-green-600 ${collapsed
+        className={`border-b border-green-600 ${
+          collapsed
             ? "flex justify-center p-5"
             : "flex items-center justify-between p-6"
-          }`}
+        }`}
       >
-
         {!collapsed && (
           <h1 className="text-2xl font-bold">
             FoodBridge AI
@@ -56,31 +58,27 @@ export default function Sidebar({ collapsed, setCollapsed }) {
         >
           ☰
         </button>
-
       </div>
 
       <nav className="mt-4 flex-1">
-
-        {menu.map((item) => (
-
+        {menu.map((item, index) => (
           <NavLink
-            key={item.name}
+            key={index}
             to={item.path}
             className={({ isActive }) =>
-              `flex items-center ${collapsed ? "justify-center" : "gap-3"
-              } px-6 py-4 hover:bg-green-600 transition ${isActive ? "bg-green-600" : ""
+              `flex items-center ${
+                collapsed ? "justify-center" : "gap-3"
+              } px-6 py-4 hover:bg-green-600 transition ${
+                isActive ? "bg-green-600" : ""
               }`
             }
           >
             <span>{item.icon}</span>
-
             {!collapsed && <span>{item.name}</span>}
-
           </NavLink>
-
         ))}
-
       </nav>
+
       {!collapsed && (
         <div className="border-t border-green-600 p-5">
           <div className="flex items-center gap-3 mb-4">
@@ -108,9 +106,8 @@ export default function Sidebar({ collapsed, setCollapsed }) {
             onClick={handleLogout}
             className="mt-5 w-full bg-white text-green-700 font-semibold py-2 rounded-lg hover:bg-green-100 transition"
           >
-            Logout
+            {t("nav.logout")}
           </button>
-
         </div>
       )}
     </aside>

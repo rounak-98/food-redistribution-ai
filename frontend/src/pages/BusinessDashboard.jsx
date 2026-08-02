@@ -12,6 +12,7 @@ import ImpactCertificateModal from "../components/dashboard/ImpactCertificateMod
 import DispatchTrackerCard from "../components/dashboard/DispatchTrackerCard";
 import SurplusForecastCard from "../components/dashboard/SurplusForecastCard";
 import LiveMapWidget, { getCityCoordinates } from "../components/dashboard/LiveMapWidget";
+import { useTranslation } from "react-i18next";
 import {
   FaBoxOpen,
   FaLeaf,
@@ -22,6 +23,7 @@ import {
 } from "react-icons/fa";
 
 export default function BusinessDashboard() {
+  const { t } = useTranslation();
   const [inventory, setInventory] = useState([]);
   const [donations, setDonations] = useState([]);
   const [summary, setSummary] = useState(null);
@@ -103,7 +105,6 @@ export default function BusinessDashboard() {
     },
   ];
 
-  // Dynamically add claimed NGOs from actual database donations
   safeDonations.forEach((item, idx) => {
     if (item.ngo_name) {
       bizLocations.push({
@@ -139,10 +140,10 @@ export default function BusinessDashboard() {
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4 bg-gradient-to-r from-slate-900 via-indigo-900 to-blue-900 p-6 rounded-3xl text-white shadow-xl">
           <div>
             <div className="inline-block bg-amber-400/20 text-amber-300 text-xs font-bold px-3 py-1 rounded-full mb-2 uppercase tracking-wider border border-amber-400/30">
-              Verified Food Donor Portal
+              {t("roles.business")}
             </div>
             <h1 className="text-3xl font-bold">
-              Welcome back, {business?.business_name || "Partner Business"}
+              {t("welcome_back")}, {business?.business_name || "Partner Business"}
             </h1>
             <p className="text-gray-300 text-sm mt-1">
               Food surplus management, live dispatch tracking & ESG sustainability dashboard
@@ -153,7 +154,7 @@ export default function BusinessDashboard() {
             onClick={() => setIsCertificateOpen(true)}
             className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-5 py-3 rounded-2xl transition shadow-lg flex items-center gap-2 self-start md:self-auto border border-emerald-400"
           >
-            📜 Download ESG & Tax Certificate
+            📜 {t("actions.download_certificate")}
           </button>
         </div>
 
@@ -165,7 +166,7 @@ export default function BusinessDashboard() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
             <KPIStatCard
-              title="Total Donations"
+              title={t("kpi.total_donations")}
               value={summary?.total_donations ?? localDonationsCount}
               icon={<FaHandsHelping />}
               color="green"
@@ -174,7 +175,7 @@ export default function BusinessDashboard() {
             />
 
             <KPIStatCard
-              title="Available Donations"
+              title={t("kpi.available_donations")}
               value={summary?.available_donations ?? localAvailableCount}
               icon={<FaBoxOpen />}
               color="orange"
@@ -183,7 +184,7 @@ export default function BusinessDashboard() {
             />
 
             <KPIStatCard
-              title="Inventory Items"
+              title={t("kpi.inventory_items")}
               value={summary?.inventory_items ?? localInventoryCount}
               icon={<FaBoxOpen />}
               color="blue"
@@ -192,7 +193,7 @@ export default function BusinessDashboard() {
             />
 
             <KPIStatCard
-              title="Completed Pickups"
+              title={t("kpi.completed_pickups")}
               value={summary?.completed_pickups ?? localCompletedCount}
               icon={<FaTruck />}
               color="green"
@@ -201,7 +202,7 @@ export default function BusinessDashboard() {
             />
 
             <KPIStatCard
-              title="Food Saved (kg)"
+              title={t("kpi.food_saved")}
               value={summary?.food_saved_kg ?? localFoodSavedKg}
               icon={<FaLeaf />}
               color="orange"
@@ -210,7 +211,7 @@ export default function BusinessDashboard() {
             />
 
             <KPIStatCard
-              title="CO₂ Avoided (kg)"
+              title={t("kpi.co2_avoided")}
               value={summary?.co2_saved_kg ?? Math.round(localFoodSavedKg * 2.5)}
               icon={<FaLeaf />}
               color="green"
@@ -219,7 +220,7 @@ export default function BusinessDashboard() {
             />
 
             <KPIStatCard
-              title="Sec 80G Tax Credit (Est.)"
+              title={t("kpi.tax_credit")}
               value={`₹${summary?.tax_deduction_estimate_inr ?? Math.round(localFoodSavedKg * 140 * 0.25)}`}
               icon={<FaFileInvoiceDollar />}
               color="blue"
@@ -228,7 +229,7 @@ export default function BusinessDashboard() {
             />
 
             <KPIStatCard
-              title="Waste Prevented (kg)"
+              title={t("kpi.waste_prevented")}
               value={summary?.waste_prevented_kg ?? Math.round(localFoodSavedKg * 0.85)}
               icon={<FaTrashAlt />}
               color="red"
@@ -246,32 +247,32 @@ export default function BusinessDashboard() {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             <QuickActionCard
-              title="Add Donation"
+              title={t("actions.add_donation")}
               icon="➕"
               path="/donations/add"
               description="Donate surplus food directly to verified partner NGOs"
-              buttonText="Create Donation"
+              buttonText={t("actions.add_donation")}
             />
             <QuickActionCard
-              title="Inventory Portal"
+              title={t("nav.inventory")}
               icon="📦"
               path="/inventory"
               description="Add, view, and organize stored food inventory items"
-              buttonText="View Inventory"
+              buttonText={t("actions.view_inventory")}
             />
             <QuickActionCard
-              title="Donation History"
+              title={t("actions.history")}
               icon="📜"
               path="/donations/history"
               description="Track past food donations and claimed pickups"
-              buttonText="View History"
+              buttonText={t("actions.history")}
             />
             <QuickActionCard
-              title="Analytics & Insights"
+              title={t("nav.analytics")}
               icon="📈"
               path="/analytics"
               description="View detailed impact metrics and reports"
-              buttonText="View Analytics"
+              buttonText={t("actions.analytics")}
             />
           </div>
         </div>
