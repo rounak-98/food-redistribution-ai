@@ -8,6 +8,8 @@
     "donations": "Donations",
     "history": "History",
     "analytics": "Analytics",
+    "profile": "Profile",
+    "alerts": "Alerts",
     "logout": "Logout"
   },
   "roles": {

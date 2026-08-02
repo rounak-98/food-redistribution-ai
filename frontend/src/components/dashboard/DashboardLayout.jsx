@@ -4,26 +4,27 @@ import Topbar from "./Topbar";
 
 export default function DashboardLayout({ children }) {
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <div className="bg-slate-100">
-
+    <div className="bg-slate-100 min-h-screen relative overflow-x-hidden">
       <Sidebar
         collapsed={collapsed}
         setCollapsed={setCollapsed}
+        mobileOpen={mobileOpen}
+        setMobileOpen={setMobileOpen}
       />
 
       <div
-        className={`flex flex-col h-screen transition-all duration-300 ${
-          collapsed ? "ml-20" : "ml-64"
-        }`}
+        className={`flex flex-col min-h-screen transition-all duration-300 w-full ${
+          collapsed ? "md:ml-20" : "md:ml-64"
+        } ml-0`}
       >
-        <Topbar />
+        <Topbar onToggleMobileMenu={() => setMobileOpen(!mobileOpen)} />
 
-        <main className="flex-1 overflow-y-auto p-8">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 space-y-6">
           {children}
         </main>
-
       </div>
     </div>
   );
