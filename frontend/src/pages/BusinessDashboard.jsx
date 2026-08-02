@@ -65,7 +65,6 @@ export default function BusinessDashboard() {
     }
   }
 
-  // Safe parsing of profile from localStorage
   let business = null;
   try {
     const rawProfile = localStorage.getItem("profile");
@@ -76,7 +75,6 @@ export default function BusinessDashboard() {
     console.error("Error parsing business profile:", e);
   }
 
-  // Determine accurate coordinates based on city or saved lat/lng
   const [cityLat, cityLng] = getCityCoordinates(business?.city || "bengaluru");
   const donorLat = business?.latitude && parseFloat(business.latitude) !== 0 ? parseFloat(business.latitude) : cityLat;
   const donorLng = business?.longitude && parseFloat(business.longitude) !== 0 ? parseFloat(business.longitude) : cityLng;
@@ -84,14 +82,12 @@ export default function BusinessDashboard() {
   const safeDonations = Array.isArray(donations) ? donations : [];
   const safeInventory = Array.isArray(inventory) ? inventory : [];
 
-  // Local calculations fallback if backend summary is loading or cold-starting
   const localInventoryCount = safeInventory.length;
   const localDonationsCount = safeDonations.length;
   const localAvailableCount = safeDonations.filter((d) => d.status === "Available").length;
   const localCompletedCount = safeDonations.filter((d) => d.status === "Completed" || d.status === "Delivered").length;
   const localFoodSavedKg = (localCompletedCount * 25) + (localDonationsCount * 10) + (localInventoryCount * 5);
 
-  // Build Dynamic Map Nodes from actual database donations & business coordinates
   const bizLocations = [
     {
       id: "donor-self",
@@ -135,36 +131,36 @@ export default function BusinessDashboard() {
 
   return (
     <DashboardLayout>
-      <div className="max-w-7xl mx-auto space-y-10">
+      <div className="max-w-7xl mx-auto space-y-6 sm:space-y-10">
         {/* Certificate Banner & Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4 bg-gradient-to-r from-slate-900 via-indigo-900 to-blue-900 p-6 rounded-3xl text-white shadow-xl">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 gap-4 bg-gradient-to-r from-slate-900 via-indigo-900 to-blue-900 p-4 sm:p-6 rounded-2xl sm:rounded-3xl text-white shadow-xl">
           <div>
-            <div className="inline-block bg-amber-400/20 text-amber-300 text-xs font-bold px-3 py-1 rounded-full mb-2 uppercase tracking-wider border border-amber-400/30">
+            <div className="inline-block bg-amber-400/20 text-amber-300 text-[10px] sm:text-xs font-bold px-3 py-1 rounded-full mb-2 uppercase tracking-wider border border-amber-400/30">
               {t("roles.business")}
             </div>
-            <h1 className="text-3xl font-bold">
+            <h1 className="text-xl sm:text-3xl font-bold">
               {t("welcome_back")}, {business?.business_name || "Partner Business"}
             </h1>
-            <p className="text-gray-300 text-sm mt-1">
+            <p className="text-gray-300 text-xs sm:text-sm mt-1">
               Food surplus management, live dispatch tracking & ESG sustainability dashboard
             </p>
           </div>
 
           <button
             onClick={() => setIsCertificateOpen(true)}
-            className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-5 py-3 rounded-2xl transition shadow-lg flex items-center gap-2 self-start md:self-auto border border-emerald-400"
+            className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-4 py-2.5 sm:px-5 sm:py-3 text-xs sm:text-sm rounded-xl sm:rounded-2xl transition shadow-lg flex items-center justify-center gap-2 self-start sm:self-auto border border-emerald-400"
           >
             📜 {t("actions.download_certificate")}
           </button>
         </div>
 
-        {/* Dashboard Overview KPI Stats */}
+        {/* Dashboard Overview KPI Stats - 2 Cards per row on Mobile! */}
         <div>
-          <h2 className="text-2xl font-bold mb-6 text-gray-900">
+          <h2 className="text-xl sm:text-2xl font-extrabold mb-4 sm:mb-6 text-slate-900">
             Operational Overview
           </h2>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
             <KPIStatCard
               title={t("kpi.total_donations")}
               value={summary?.total_donations ?? localDonationsCount}
@@ -239,13 +235,13 @@ export default function BusinessDashboard() {
           </div>
         </div>
 
-        {/* Quick Actions */}
+        {/* Quick Actions - 2 Cards per row on Mobile! */}
         <div>
-          <h2 className="text-2xl font-bold mb-6 text-gray-900">
+          <h2 className="text-xl sm:text-2xl font-extrabold mb-4 sm:mb-6 text-slate-900">
             Quick Actions
           </h2>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
             <QuickActionCard
               title={t("actions.add_donation")}
               icon="➕"
@@ -278,34 +274,34 @@ export default function BusinessDashboard() {
         </div>
 
         {/* Dispatch Tracker & Forecast Section */}
-        <div className="grid lg:grid-cols-2 gap-8">
+        <div className="grid lg:grid-cols-2 gap-6 sm:gap-8">
           <DispatchTrackerCard donations={donations} />
           <SurplusForecastCard />
         </div>
 
         {/* AI Insight & Recent Donations */}
-        <div className="grid lg:grid-cols-2 gap-8">
+        <div className="grid lg:grid-cols-2 gap-6 sm:gap-8">
           <AIInsightCard inventory={inventory} />
 
-          <div className="bg-white rounded-2xl shadow-md p-8 border border-gray-100">
-            <h2 className="text-2xl font-bold mb-6 text-gray-900">
+          <div className="bg-white rounded-2xl shadow-md p-5 sm:p-8 border border-gray-100">
+            <h2 className="text-xl sm:text-2xl font-extrabold mb-4 sm:mb-6 text-gray-900">
               Recent Donations
             </h2>
 
-            <ul className="space-y-4">
+            <ul className="space-y-3 sm:space-y-4">
               {safeDonations.length === 0 ? (
-                <p className="text-gray-500 py-6 text-center">No donations posted yet.</p>
+                <p className="text-gray-500 py-6 text-center text-xs sm:text-sm">No donations posted yet.</p>
               ) : (
                 safeDonations.slice(0, 5).map((item) => (
                   <li
                     key={item.id || item.donation_id || Math.random()}
-                    className="flex justify-between border-b pb-3 items-center"
+                    className="flex justify-between border-b pb-3 items-center text-xs sm:text-sm"
                   >
                     <div>
                       <p className="font-semibold text-gray-900">
                         🍱 {item.food_name || "Food Donation"}
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-[11px] text-gray-500">
                         Cat: {item.food_category || item.category || "Surplus Meals"}
                       </p>
                     </div>
@@ -314,7 +310,7 @@ export default function BusinessDashboard() {
                       <p className="font-semibold text-blue-600">
                         {item.quantity}
                       </p>
-                      <span className="bg-green-100 text-green-700 text-xs px-2.5 py-0.5 rounded-full font-bold">
+                      <span className="bg-green-100 text-green-700 text-[10px] sm:text-xs px-2.5 py-0.5 rounded-full font-bold">
                         {item.status || "Available"}
                       </span>
                     </div>
@@ -336,7 +332,7 @@ export default function BusinessDashboard() {
         </div>
 
         {/* Inventory Analytics Charts */}
-        <div className="grid lg:grid-cols-2 gap-8">
+        <div className="grid lg:grid-cols-2 gap-6 sm:gap-8">
           <InventoryPieChart inventory={inventory} />
           <CategoryBarChart inventory={inventory} />
         </div>
