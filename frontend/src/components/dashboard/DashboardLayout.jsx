@@ -16,13 +16,13 @@ export default function DashboardLayout({ children }) {
       />
 
       <div
-        className={`flex flex-col min-h-screen transition-all duration-300 w-full ${
-          collapsed ? "md:ml-20" : "md:ml-64"
-        } ml-0`}
+        className={`flex flex-col min-h-screen transition-all duration-300 ${
+          collapsed ? "md:pl-20" : "md:pl-64"
+        } pl-0 w-full box-border`}
       >
         <Topbar onToggleMobileMenu={() => setMobileOpen(!mobileOpen)} />
 
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 space-y-6">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 space-y-6 w-full max-w-full box-border">
           {children}
         </main>
       </div>
