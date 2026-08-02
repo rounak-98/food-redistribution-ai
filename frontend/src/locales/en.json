@@ -1,0 +1,47 @@
+{
+  "app_name": "FoodBridge AI",
+  "tagline": "Real-Time Food Redistribution & Logistics",
+  "welcome_back": "Welcome back",
+  "nav": {
+    "dashboard": "Dashboard",
+    "inventory": "Inventory Portal",
+    "donations": "Donations",
+    "history": "History",
+    "analytics": "Analytics",
+    "logout": "Logout"
+  },
+  "roles": {
+    "admin": "System Administrator",
+    "business": "Partner Business",
+    "ngo": "NGO Shelter",
+    "individual": "Individual Donor",
+    "volunteer": "Transport Rider"
+  },
+  "actions": {
+    "add_donation": "Add Donation",
+    "view_inventory": "View Inventory",
+    "history": "Donation History",
+    "analytics": "View Analytics",
+    "download_certificate": "Download ESG Certificate"
+  },
+  "kpi": {
+    "total_donations": "Total Donations",
+    "available_donations": "Available Donations",
+    "inventory_items": "Inventory Items",
+    "completed_pickups": "Completed Pickups",
+    "food_saved": "Food Saved (kg)",
+    "co2_avoided": "CO₂ Avoided (kg)",
+    "tax_credit": "Sec 80G Tax Credit (Est.)",
+    "waste_prevented": "Waste Prevented (kg)"
+  },
+  "ml": {
+    "title": "AI Surplus Forecast & Risk",
+    "active": "ML Model Active",
+    "prediction": "ML Prediction"
+  },
+  "pwa": {
+    "install_title": "Install FoodBridge App",
+    "install_desc": "Install FoodBridge AI on your home screen for quick offline access.",
+    "install_btn": "📲 Install App"
+  }
+}

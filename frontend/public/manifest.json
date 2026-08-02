@@ -1,0 +1,30 @@
+{
+  "short_name": "FoodBridge",
+  "name": "FoodBridge AI - Surplus Food Redistribution System",
+  "description": "AI-powered real-time surplus food redistribution, spoilage forecasting, and NGO logistics platform.",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "pwa-192x192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "pwa-512x512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#f8fafc",
+  "theme_color": "#0f172a",
+  "display": "standalone",
+  "orientation": "portrait",
+  "categories": ["sustainability", "food", "logistics", "social-impact"]
+}

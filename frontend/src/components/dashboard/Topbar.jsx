@@ -1,4 +1,9 @@
+import LanguageSelector from "../LanguageSelector";
+import PWAInstallPrompt from "../PWAInstallPrompt";
+import { useTranslation } from "react-i18next";
+
 export default function Topbar() {
+  const { t } = useTranslation();
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const profile = JSON.parse(localStorage.getItem("profile") || "{}");
 
@@ -9,43 +14,47 @@ export default function Topbar() {
 
   if (role === "ngo") {
     accountName = profile?.ngo_name || user?.name || "NGO Partner";
-    accountType = "Registered NGO";
+    accountType = t("roles.ngo");
   } else if (role === "individual") {
     accountName = profile?.full_name || user?.name || "Individual Donor";
-    accountType = "Household Food Donor";
+    accountType = t("roles.individual");
   } else if (role === "volunteer") {
     accountName = profile?.full_name || user?.name || "Transport Rider";
-    accountType = "Logistics Volunteer";
+    accountType = t("roles.volunteer");
   } else if (role === "admin") {
     accountName = user?.name || "System Admin";
-    accountType = "Super Admin Console";
+    accountType = t("roles.admin");
   } else if (role === "business") {
     accountName = profile?.business_name || user?.name || "Business Partner";
-    accountType = "Food Business Donor";
+    accountType = t("roles.business");
   }
 
   return (
-    <header className="sticky top-0 z-20 bg-white shadow px-8 py-5 flex justify-between items-center">
+    <header className="sticky top-0 z-20 bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-100 px-8 py-4 flex justify-between items-center flex-wrap gap-4">
       <div>
-        <h1 className="text-3xl font-bold text-gray-800">
-          FoodBridge AI Dashboard
+        <h1 className="text-2xl font-extrabold text-slate-900">
+          {t("app_name")} Dashboard
         </h1>
 
-        <p className="text-gray-500">
-          Welcome back, <span className="font-bold text-gray-800">{accountName}</span> 👋
+        <p className="text-slate-500 text-xs mt-0.5">
+          {t("welcome_back")}, <span className="font-bold text-slate-900">{accountName}</span> 👋
         </p>
       </div>
 
-      <div className="flex items-center gap-4">
-        <div className="text-right">
-          <p className="font-semibold text-gray-900">{accountName}</p>
-          <p className="text-xs font-bold text-indigo-600 uppercase tracking-wider">{accountType}</p>
+      <div className="flex items-center gap-5">
+        <LanguageSelector />
+
+        <div className="text-right hidden sm:block">
+          <p className="font-bold text-slate-900 text-sm">{accountName}</p>
+          <p className="text-[10px] font-extrabold text-indigo-600 uppercase tracking-wider">{accountType}</p>
         </div>
 
-        <div className="w-11 h-11 rounded-full bg-indigo-600 text-white flex items-center justify-center font-extrabold text-base shadow">
+        <div className="w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center font-extrabold text-sm shadow-md border border-indigo-500">
           {accountName.charAt(0).toUpperCase()}
         </div>
       </div>
+
+      <PWAInstallPrompt />
     </header>
   );
 }
