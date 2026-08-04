@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { loginUser } from "../services/authService";
 
 export default function LoginPage() {
@@ -8,10 +8,31 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  useEffect(() => {
+    // Auto-redirect already authenticated users to their dashboard (especially useful offline)
+    const token = localStorage.getItem("token");
+    const userStr = localStorage.getItem("user");
+    if (token && userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        const role = user.role?.toLowerCase();
+        if (role === "business") navigate("/dashboard/business");
+        else if (role === "ngo") navigate("/dashboard/ngo");
+        else if (role === "individual") navigate("/dashboard/individual");
+        else if (role === "volunteer") navigate("/dashboard/volunteer");
+        else if (role === "admin") navigate("/dashboard/admin");
+      } catch (e) {
+        console.error("Error parsing session user:", e);
+      }
+    }
+  }, [navigate]);
 
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setErrorMessage("");
 
     try {
       const response = await loginUser({
@@ -50,7 +71,13 @@ export default function LoginPage() {
         navigate("/dashboard/admin");
       }
     } catch (err) {
-      alert(err.response?.data?.detail || err.message || "Login Failed");
+      if (!navigator.onLine || err.message === "Network Error" || err.code === "ERR_NETWORK") {
+        setErrorMessage(
+          "⚠️ You are currently offline. Please connect to the internet to log in for the first time. Once logged in, your session will load automatically even offline!"
+        );
+      } else {
+        setErrorMessage(err.response?.data?.detail || err.message || "Login Failed. Please check credentials.");
+      }
     } finally {
       setLoading(false);
     }
@@ -60,9 +87,15 @@ export default function LoginPage() {
     <div className="min-h-screen bg-slate-100 flex items-center justify-center px-4 py-10">
       <div className="bg-white w-full max-w-md rounded-3xl shadow-xl p-8 border border-gray-100">
         <h1 className="text-3xl font-bold mb-2 text-gray-900">Welcome Back</h1>
-        <p className="text-gray-600 mb-8 text-sm">
+        <p className="text-gray-600 mb-6 text-sm">
           Login to your FoodBridge AI account.
         </p>
+
+        {errorMessage && (
+          <div className="mb-6 p-4 bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold rounded-2xl leading-relaxed shadow-sm">
+            {errorMessage}
+          </div>
+        )}
 
         <form onSubmit={handleLoginSubmit} className="space-y-5">
           <div>
@@ -92,7 +125,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-4 rounded-xl font-bold transition shadow text-sm"
+            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-4 rounded-xl font-bold transition shadow text-sm disabled:opacity-50"
           >
             {loading ? "Logging in..." : "Login to Dashboard"}
           </button>
