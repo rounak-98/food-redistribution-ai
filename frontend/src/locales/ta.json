@@ -10,7 +10,17 @@
     "analytics": "பகுப்பாய்வு",
     "profile": "சுயவிவரம்",
     "alerts": "எச்சரிக்கைகள்",
-    "logout": "வெளியேறு"
+    "logout": "வெளியேறு",
+    "my_donations": "எனது நன்கொடைகள்",
+    "nearby_ngos": "அருகிலுள்ள என்ஜிஓக்கள்",
+    "badges_rewards": "பேட்ஜ்கள் & வெகுமதிகள்",
+    "accepted_donations": "ஏற்கப்பட்ட நன்கொடைகள்",
+    "delivery_requests": "டெலிவரி கோரிக்கைகள்",
+    "scheduled_deliveries": "திட்டமிடப்பட்ட டெலிவரிகள்",
+    "impact_karma": "தாக்கம் & கர்மா",
+    "manage_users": "பயனர்களை நிர்வகிக்கவும்",
+    "master_ledger": "மாஸ்டர் நன்கொடை லெட்ஜர்",
+    "transport_dispatches": "போக்குவரத்து டெலிவரிகள்"
   },
   "roles": {
     "admin": "சிஸ்டம் நிர்வாகி",
@@ -24,7 +34,9 @@
     "view_inventory": "சரக்குகளைப் பார்க்கவும்",
     "history": "நன்கொடை வரலாறு",
     "analytics": "பகுப்பாய்வைப் பார்க்கவும்",
-    "download_certificate": "ESG சான்றிதழைப் பதிவிறக்கவும்"
+    "download_certificate": "ESG சான்றிதழைப் பதிவிறக்கவும்",
+    "post_surplus": "வீட்டு உபரி உணவை சேர்க்கவும்",
+    "update_profile": "சுயவிவரத்தை புதுப்பிக்கவும்"
   },
   "kpi": {
     "total_donations": "மொத்த நன்கொடைகள்",
@@ -39,6 +51,26 @@
     "quick_actions": "விரைவான நடவடிக்கைகள்",
     "recent_donations": "சமீபத்திய நன்கொடைகள்",
     "no_donations": "இதுவரை எந்த நன்கொடைகளும் வெளியிடப்படவில்லை."
+  },
+  "dashboards": {
+    "personal_impact": "தனிப்பட்ட தாக்க மேலோட்டம்",
+    "donations_posted": "வெளியிடப்பட்ட நன்கொடைகள்",
+    "meals_contributed": "வழங்கப்பட்ட உணவுகள்",
+    "hero_points": "ஹீரோ புள்ளிகள்",
+    "accepted_donations_stat": "ஏற்கப்பட்ட நன்கொடைகள்",
+    "meals_distributed": "வழங்கப்பட்ட உணவுகள்",
+    "deliveries_completed": "முடிக்கப்பட்ட டெலிவரிகள்",
+    "distance_covered": "கடக்கப்பட்ட தூரம்",
+    "hours_volunteered": "தன்னார்வ மணிநேரம்",
+    "logistics_karma": "லாஜிஸ்டிக்ஸ் கர்மா புள்ளிகள்",
+    "platform_management": "ஃபுட்பிரிட்ஜ் AI தள நிர்வாகம்",
+    "total_users": "மொத்த பயனர்கள்",
+    "businesses": "வணிகங்கள்",
+    "verified_ngos": "சரிபார்க்கப்பட்ட என்ஜிஓக்கள்",
+    "individual_donors": "தனிநபர் கொடையாளர்கள்",
+    "transport_riders": "போக்குவரத்து ரைடர்கள்",
+    "meals_served": "பரிமாறப்பட்ட உணவுகள்",
+    "current_location_region": "தற்போதைய இடம் & செயல்பாட்டு பகுதி"
   },
   "cards": {
     "dispatch_tracker": "நேரடி பிக்அப் & டெலிவரி டிராக்கர்",

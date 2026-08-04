@@ -7,7 +7,7 @@ export default function NGOSidebar({ collapsed, setCollapsed, mobileOpen, setMob
   const menu = [
     { name: t("nav.dashboard"), path: "/dashboard/ngo", icon: "🏠" },
     { name: t("kpi.available_donations"), path: "/ngo/donations", icon: "🍱" },
-    { name: "Accepted Donations", path: "/ngo/accepted", icon: "✅" },
+    { name: t("nav.accepted_donations"), path: "/ngo/accepted", icon: "✅" },
     { name: t("nav.history"), path: "/ngo/history", icon: "📜" },
     { name: t("nav.profile"), path: "/ngo/profile", icon: "👤" },
   ];

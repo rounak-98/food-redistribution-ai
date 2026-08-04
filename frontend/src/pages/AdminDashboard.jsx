@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import AdminDashboardLayout from "../components/dashboard/AdminDashboardLayout";
 import LiveMapWidget from "../components/dashboard/LiveMapWidget";
 import {
@@ -33,6 +34,7 @@ ChartJS.register(
 );
 
 export default function AdminDashboard() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = searchParams.get("tab") || "users";
@@ -128,7 +130,6 @@ export default function AdminDashboard() {
     }
   };
 
-  // Chart Data Preparation
   const userRoleChartData = {
     labels: ["Food Businesses", "NGO Partners", "Individual Donors", "Transport Riders"],
     datasets: [
@@ -166,7 +167,7 @@ export default function AdminDashboard() {
 
   return (
     <AdminDashboardLayout>
-      <div className="max-w-7xl mx-auto space-y-8">
+      <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
         {!isAdmin && (
           <div className="bg-amber-50 border border-amber-300 p-5 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
@@ -187,13 +188,13 @@ export default function AdminDashboard() {
         )}
 
         {/* Header Banner */}
-        <div className="bg-indigo-950 text-white rounded-3xl p-8 shadow-xl border border-indigo-900 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+        <div className="bg-indigo-950 text-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-xl border border-indigo-900 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div>
             <span className="bg-indigo-500 text-white text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider">
-              🛡️ Super Admin Control Center
+              🛡️ {t("roles.admin")}
             </span>
-            <h1 className="text-3xl font-bold mt-2">FoodBridge AI Platform Management</h1>
-            <p className="text-indigo-200 text-sm mt-1">
+            <h1 className="text-2xl sm:text-3xl font-bold mt-2">{t("dashboards.platform_management")}</h1>
+            <p className="text-indigo-200 text-xs sm:text-sm mt-1">
               Oversee platform users across all 4 roles (Business, NGO, Individual, Volunteer), food redistribution ledgers, and delivery dispatches.
             </p>
           </div>
@@ -202,51 +203,51 @@ export default function AdminDashboard() {
             onClick={loadAdminData}
             className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow transition self-start md:self-auto"
           >
-            🔄 Refresh Platform Data
+            🔄 Refresh Data
           </button>
         </div>
 
-        {/* System KPIs Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-            <p className="text-[11px] font-semibold text-gray-500">Total Users</p>
-            <h3 className="text-2xl font-extrabold text-indigo-700 mt-1">{stats.total_users}</h3>
+        {/* System KPIs Grid - 2 cards per row on mobile */}
+        <div className="grid grid-cols-2 lg:grid-cols-6 gap-3 sm:gap-4">
+          <div className="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-gray-100">
+            <p className="text-[10px] sm:text-[11px] font-bold text-gray-500 uppercase">{t("dashboards.total_users")}</p>
+            <h3 className="text-xl sm:text-2xl font-extrabold text-indigo-700 mt-1">{stats.total_users}</h3>
           </div>
 
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-            <p className="text-[11px] font-semibold text-gray-500">Businesses</p>
-            <h3 className="text-2xl font-extrabold text-blue-600 mt-1">{stats.business_count}</h3>
+          <div className="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-gray-100">
+            <p className="text-[10px] sm:text-[11px] font-bold text-gray-500 uppercase">{t("dashboards.businesses")}</p>
+            <h3 className="text-xl sm:text-2xl font-extrabold text-blue-600 mt-1">{stats.business_count}</h3>
           </div>
 
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-            <p className="text-[11px] font-semibold text-gray-500">Verified NGOs</p>
-            <h3 className="text-2xl font-extrabold text-emerald-600 mt-1">{stats.ngo_count}</h3>
+          <div className="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-gray-100">
+            <p className="text-[10px] sm:text-[11px] font-bold text-gray-500 uppercase">{t("dashboards.verified_ngos")}</p>
+            <h3 className="text-xl sm:text-2xl font-extrabold text-emerald-600 mt-1">{stats.ngo_count}</h3>
           </div>
 
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-            <p className="text-[11px] font-semibold text-gray-500">Individual Donors</p>
-            <h3 className="text-2xl font-extrabold text-purple-600 mt-1">{stats.individual_count}</h3>
+          <div className="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-gray-100">
+            <p className="text-[10px] sm:text-[11px] font-bold text-gray-500 uppercase">{t("dashboards.individual_donors")}</p>
+            <h3 className="text-xl sm:text-2xl font-extrabold text-purple-600 mt-1">{stats.individual_count}</h3>
           </div>
 
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-            <p className="text-[11px] font-semibold text-gray-500">Transport Riders</p>
-            <h3 className="text-2xl font-extrabold text-amber-500 mt-1">{stats.volunteer_count}</h3>
+          <div className="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-gray-100">
+            <p className="text-[10px] sm:text-[11px] font-bold text-gray-500 uppercase">{t("dashboards.transport_riders")}</p>
+            <h3 className="text-xl sm:text-2xl font-extrabold text-amber-500 mt-1">{stats.volunteer_count}</h3>
           </div>
 
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-            <p className="text-[11px] font-semibold text-gray-500">Meals Served</p>
-            <h3 className="text-2xl font-extrabold text-indigo-900 mt-1">{stats.meals_saved}</h3>
+          <div className="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-gray-100">
+            <p className="text-[10px] sm:text-[11px] font-bold text-gray-500 uppercase">{t("dashboards.meals_served")}</p>
+            <h3 className="text-xl sm:text-2xl font-extrabold text-indigo-900 mt-1">{stats.meals_saved}</h3>
           </div>
         </div>
 
         {/* System-Wide GIS Logistics Map */}
         <LiveMapWidget
-          title="System-Wide Network GIS Logistics & Node Map"
+          title={t("cards.gis_map")}
           height="420px"
         />
 
         {/* Advanced System Analytics Visualizer Charts */}
-        <div className="grid md:grid-cols-2 gap-8">
+        <div className="grid md:grid-cols-2 gap-6 sm:gap-8">
           <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
             <h3 className="text-lg font-bold text-gray-900 mb-2">📊 Platform User & Role Proportion</h3>
             <p className="text-xs text-gray-500 mb-6">Distribution across Food Businesses, NGOs, Households & Riders</p>
@@ -265,38 +266,38 @@ export default function AdminDashboard() {
         </div>
 
         {/* Tab Selection */}
-        <div className="flex gap-4 border-b pb-3">
+        <div className="flex gap-4 border-b pb-3 flex-wrap">
           <button
             onClick={() => setActiveTab("users")}
-            className={`text-base font-bold pb-2 transition border-b-2 ${
+            className={`text-sm sm:text-base font-bold pb-2 transition border-b-2 ${
               activeTab === "users"
                 ? "border-indigo-600 text-indigo-950 font-extrabold"
                 : "border-transparent text-gray-400 hover:text-gray-600"
             }`}
           >
-            👥 Manage Platform Users ({users.length})
+            👥 {t("nav.manage_users")} ({users.length})
           </button>
 
           <button
             onClick={() => setActiveTab("donations")}
-            className={`text-base font-bold pb-2 transition border-b-2 ${
+            className={`text-sm sm:text-base font-bold pb-2 transition border-b-2 ${
               activeTab === "donations"
                 ? "border-indigo-600 text-indigo-950 font-extrabold"
                 : "border-transparent text-gray-400 hover:text-gray-600"
             }`}
           >
-            🍱 Master Donations Ledger ({donations.length})
+            🍱 {t("nav.master_ledger")} ({donations.length})
           </button>
 
           <button
             onClick={() => setActiveTab("deliveries")}
-            className={`text-base font-bold pb-2 transition border-b-2 ${
+            className={`text-sm sm:text-base font-bold pb-2 transition border-b-2 ${
               activeTab === "deliveries"
                 ? "border-indigo-600 text-indigo-950 font-extrabold"
                 : "border-transparent text-gray-400 hover:text-gray-600"
             }`}
           >
-            🚚 Transport Dispatches ({deliveries.length})
+            🚚 {t("nav.transport_dispatches")} ({deliveries.length})
           </button>
         </div>
 

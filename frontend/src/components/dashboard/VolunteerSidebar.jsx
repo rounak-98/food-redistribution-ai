@@ -6,9 +6,9 @@ export default function VolunteerSidebar({ collapsed, setCollapsed, mobileOpen, 
 
   const menu = [
     { name: t("nav.dashboard"), path: "/dashboard/volunteer", icon: "🛵" },
-    { name: "Delivery Requests", path: "/volunteer/requests", icon: "📦" },
-    { name: "Scheduled Deliveries", path: "/volunteer/scheduled", icon: "📅" },
-    { name: "Impact & Karma", path: "/volunteer/karma", icon: "⭐" },
+    { name: t("nav.delivery_requests"), path: "/volunteer/requests", icon: "📦" },
+    { name: t("nav.scheduled_deliveries"), path: "/volunteer/scheduled", icon: "📅" },
+    { name: t("nav.impact_karma"), path: "/volunteer/karma", icon: "⭐" },
     { name: t("nav.profile"), path: "/volunteer/profile", icon: "👤" },
   ];
 

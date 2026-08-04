@@ -53,8 +53,6 @@ export default function LanguageSelector() {
       if (outcome === "accepted") {
         setDeferredPrompt(null);
       }
-    } else {
-      alert("📲 FoodBridge App Installation:\n\nTo install this app on your device:\n1. On Mobile: Tap your browser menu (⋮ or share icon) and select 'Add to Home Screen'.\n2. On Desktop: Click the install icon (⊕) on the right side of your address bar!");
     }
   };
 

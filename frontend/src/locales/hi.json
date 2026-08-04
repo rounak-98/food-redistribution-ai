@@ -10,7 +10,17 @@
     "analytics": "विश्लेषण",
     "profile": "प्रोफ़ाइल",
     "alerts": "अलर्ट",
-    "logout": "लॉग आउट"
+    "logout": "लॉग आउट",
+    "my_donations": "मेरे दान",
+    "nearby_ngos": "पास के एनजीओ",
+    "badges_rewards": "बैज और पुरस्कार",
+    "accepted_donations": "स्वीकृत दान",
+    "delivery_requests": "डिलीवरी अनुरोध",
+    "scheduled_deliveries": "अनुसूचित डिलीवरी",
+    "impact_karma": "प्रभाव और कर्म",
+    "manage_users": "उपयोगकर्ता प्रबंधन",
+    "master_ledger": "मास्टर दान खाता",
+    "transport_dispatches": "परिवहन प्रेषण"
   },
   "roles": {
     "admin": "सिस्टम प्रशासक",
@@ -24,7 +34,9 @@
     "view_inventory": "इन्वेंटरी देखें",
     "history": "दान इतिहास",
     "analytics": "विश्लेषण देखें",
-    "download_certificate": "ईएसजी प्रमाणपत्र डाउनलोड करें"
+    "download_certificate": "ईएसजी प्रमाणपत्र डाउनलोड करें",
+    "post_surplus": "घर का अधिशेष भोजन पोस्ट करें",
+    "update_profile": "प्रोफ़ाइल अपडेट करें"
   },
   "kpi": {
     "total_donations": "कुल दान",
@@ -39,6 +51,26 @@
     "quick_actions": "त्वरित कार्रवाइयां",
     "recent_donations": "हाल के दान",
     "no_donations": "अभी तक कोई दान पोस्ट नहीं किया गया है।"
+  },
+  "dashboards": {
+    "personal_impact": "व्यक्तिगत प्रभाव अवलोकन",
+    "donations_posted": "पोस्ट किए गए दान",
+    "meals_contributed": "योगदान किए गए भोजन",
+    "hero_points": "हीरो अंक",
+    "accepted_donations_stat": "स्वीकृत दान",
+    "meals_distributed": "अनुमानित वितरित भोजन",
+    "deliveries_completed": "पूरी की गई डिलीवरी",
+    "distance_covered": "तय की गई दूरी",
+    "hours_volunteered": "स्वयंसेवा के घंटे",
+    "logistics_karma": "लॉजिस्टिक्स कर्म अंक",
+    "platform_management": "फूडब्रिज एआई प्लेटफॉर्म प्रबंधन",
+    "total_users": "कुल उपयोगकर्ता",
+    "businesses": "व्यवसाय",
+    "verified_ngos": "सत्यापित एनजीओ",
+    "individual_donors": "व्यक्तिगत दाता",
+    "transport_riders": "परिवहन राइडर",
+    "meals_served": "परोसा गया भोजन",
+    "current_location_region": "वर्तमान स्थान और परिचालन क्षेत्र"
   },
   "cards": {
     "dispatch_tracker": "लाइव पिकअप और प्रेषण ट्रैकर",

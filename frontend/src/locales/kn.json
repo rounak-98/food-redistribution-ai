@@ -10,7 +10,17 @@
     "analytics": "ವಿಶ್ಲೇಷಣೆ",
     "profile": "ಪ್ರೊಫೈಲ್",
     "alerts": "ಎಚ್ಚರಿಕೆಗಳು",
-    "logout": "ಲಾಗ್ ಔಟ್"
+    "logout": "ಲಾಗ್ ಔಟ್",
+    "my_donations": "ನನ್ನ ದೇಣಿಗೆಗಳು",
+    "nearby_ngos": "ಹತ್ತಿರದ ಎನ್‌ಜಿಒಗಳು",
+    "badges_rewards": "ಬ್ಯಾಡ್ಜ್‌ಗಳು ಮತ್ತು ಬಹುಮಾನಗಳು",
+    "accepted_donations": "ಸ್ವೀಕರಿಸಿದ ದೇಣಿಗೆಗಳು",
+    "delivery_requests": "ವಿತರಣಾ ವಿನಂತಿಗಳು",
+    "scheduled_deliveries": "ನಿಗದಿತ ವಿತರಣೆಗಳು",
+    "impact_karma": "ಪ್ರಭಾವ ಮತ್ತು ಕರ್ಮ",
+    "manage_users": "ಬಳಕೆದಾರರ ನಿರ್ವಹಣೆ",
+    "master_ledger": "ಮಾಸ್ಟರ್ ದೇಣಿಗೆ ಲೆಡ್ಜರ್",
+    "transport_dispatches": "ಸಾರಿಗೆ ರವಾನೆಗಳು"
   },
   "roles": {
     "admin": "ಸಿಸ್ಟಮ್ ನಿರ್ವಾಹಕರು",
@@ -24,7 +34,9 @@
     "view_inventory": "ಇನ್ವೆಂಟರಿ ವೀಕ್ಷಿಸಿ",
     "history": "ದೇಣಿಗೆ ಇತಿಹಾಸ",
     "analytics": "ವಿಶ್ಲೇಷಣೆ ವೀಕ್ಷಿಸಿ",
-    "download_certificate": "ESG ಪ್ರಮಾಣಪತ್ರ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ"
+    "download_certificate": "ESG ಪ್ರಮಾಣಪತ್ರ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ",
+    "post_surplus": "ಮನೆಯ ಹೆಚ್ಚುವರಿ ಆಹಾರ ಪೋಸ್ಟ್ ಮಾಡಿ",
+    "update_profile": "ಪ್ರೊಫೈಲ್ ಅಪ್‌ಡೇಟ್ ಮಾಡಿ"
   },
   "kpi": {
     "total_donations": "ಒಟ್ಟು ದೇಣಿಗೆಗಳು",
@@ -39,6 +51,26 @@
     "quick_actions": "ತ್ವರಿತ ಕ್ರಮಗಳು",
     "recent_donations": "ಇತ್ತೀಚಿನ ದೇಣಿಗೆಗಳು",
     "no_donations": "ಇನ್ನೂ ಯಾವುದೇ ದೇಣಿಗೆಗಳನ್ನು ಪೋಸ್ಟ್ ಮಾಡಲಾಗಿಲ್ಲ."
+  },
+  "dashboards": {
+    "personal_impact": "ವೈಯಕ್ತಿಕ ಪ್ರಭಾವದ ಅವಲೋಕನ",
+    "donations_posted": "ಪೋಸ್ಟ್ ಮಾಡಿದ ದೇಣಿಗೆಗಳು",
+    "meals_contributed": "ಕೊಡುಗೆ ನೀಡಿದ ಊಟಗಳು",
+    "hero_points": "ಹೀರೋ ಪಾಯಿಂಟ್‌ಗಳು",
+    "accepted_donations_stat": "ಸ್ವೀಕರಿಸಿದ ದೇಣಿಗೆಗಳು",
+    "meals_distributed": "ಅಂದಾಜು ಹಂಚಲಾದ ಊಟಗಳು",
+    "deliveries_completed": "ಪೂರ್ಣಗೊಂಡ ವಿತರಣೆಗಳು",
+    "distance_covered": "ಕ್ರಮಿಸಿದ ದೂರ",
+    "hours_volunteered": "ಸ್ವಯಂಸೇವೆಯ ಗಂಟೆಗಳು",
+    "logistics_karma": "ಲಾಜಿಸ್ಟಿಕ್ಸ್ ಕರ್ಮ ಪಾಯಿಂಟ್‌ಗಳು",
+    "platform_management": "ಫುಡ್‌ಬ್ರಿಡ್ಜ್ AI ಪ್ಲಾಟ್‌ಫಾರ್ಮ್ ನಿರ್ವಹಣೆ",
+    "total_users": "ಒಟ್ಟು ಬಳಕೆದಾರರು",
+    "businesses": "ಉದ್ಯಮಗಳು",
+    "verified_ngos": "ಪರಿಶೀಲಿಸಿದ ಎನ್‌ಜಿಒಗಳು",
+    "individual_donors": "ವೈಯಕ್ತಿಕ ದಾನಿಗಳು",
+    "transport_riders": "ಸಾರಿಗೆ ರೈಡರ್‌ಗಳು",
+    "meals_served": "ಉಣಬಡಿಸಿದ ಊಟಗಳು",
+    "current_location_region": "ಪ್ರಸ್ತುತ ಸ್ಥಳ ಮತ್ತು ಕಾರ್ಯಾಚರಣೆಯ ಪ್ರದೇಶ"
   },
   "cards": {
     "dispatch_tracker": "ಲೈವ್ ಪಿಕ್ಅಪ್ ಮತ್ತು ರವಾನೆ ಟ್ರ್ಯಾಕರ್",

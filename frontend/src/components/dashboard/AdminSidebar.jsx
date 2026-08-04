@@ -8,9 +8,9 @@ export default function AdminSidebar({ collapsed, setCollapsed, mobileOpen, setM
   const currentTab = searchParams.get("tab") || "users";
 
   const menu = [
-    { id: "users", name: "Manage Platform Users", path: "/dashboard/admin?tab=users", icon: "👥" },
-    { id: "donations", name: "Master Donations Ledger", path: "/dashboard/admin?tab=donations", icon: "🍱" },
-    { id: "deliveries", name: "Transport Dispatches", path: "/dashboard/admin?tab=deliveries", icon: "🚚" },
+    { id: "users", name: t("nav.manage_users"), path: "/dashboard/admin?tab=users", icon: "👥" },
+    { id: "donations", name: t("nav.master_ledger"), path: "/dashboard/admin?tab=donations", icon: "🍱" },
+    { id: "deliveries", name: t("nav.transport_dispatches"), path: "/dashboard/admin?tab=deliveries", icon: "🚚" },
   ];
 
   const user = JSON.parse(localStorage.getItem("user") || "{}");

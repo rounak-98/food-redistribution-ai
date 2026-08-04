@@ -10,7 +10,17 @@
     "analytics": "Analytics",
     "profile": "Profile",
     "alerts": "Alerts",
-    "logout": "Logout"
+    "logout": "Logout",
+    "my_donations": "My Donations",
+    "nearby_ngos": "Nearby NGOs",
+    "badges_rewards": "Badges & Rewards",
+    "accepted_donations": "Accepted Donations",
+    "delivery_requests": "Delivery Requests",
+    "scheduled_deliveries": "Scheduled Deliveries",
+    "impact_karma": "Impact & Karma",
+    "manage_users": "Manage Platform Users",
+    "master_ledger": "Master Donations Ledger",
+    "transport_dispatches": "Transport Dispatches"
   },
   "roles": {
     "admin": "System Administrator",
@@ -24,7 +34,9 @@
     "view_inventory": "View Inventory",
     "history": "Donation History",
     "analytics": "View Analytics",
-    "download_certificate": "Download ESG Certificate"
+    "download_certificate": "Download ESG Certificate",
+    "post_surplus": "Post Home Surplus Food",
+    "update_profile": "Update Profile"
   },
   "kpi": {
     "total_donations": "Total Donations",
@@ -39,6 +51,26 @@
     "quick_actions": "Quick Actions",
     "recent_donations": "Recent Donations",
     "no_donations": "No donations posted yet."
+  },
+  "dashboards": {
+    "personal_impact": "Personal Impact Overview",
+    "donations_posted": "Donations Posted",
+    "meals_contributed": "Meals Contributed",
+    "hero_points": "Hero Points",
+    "accepted_donations_stat": "Accepted Donations",
+    "meals_distributed": "Est. Meals Distributed",
+    "deliveries_completed": "Deliveries Completed",
+    "distance_covered": "Distance Covered",
+    "hours_volunteered": "Hours Volunteered",
+    "logistics_karma": "Logistics Karma Points",
+    "platform_management": "FoodBridge AI Platform Management",
+    "total_users": "Total Users",
+    "businesses": "Businesses",
+    "verified_ngos": "Verified NGOs",
+    "individual_donors": "Individual Donors",
+    "transport_riders": "Transport Riders",
+    "meals_served": "Meals Served",
+    "current_location_region": "Current Location & Operational Region"
   },
   "cards": {
     "dispatch_tracker": "Live Pickup & Dispatch Tracker",

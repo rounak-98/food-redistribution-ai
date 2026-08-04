@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import VolunteerDashboardLayout from "../components/dashboard/VolunteerDashboardLayout";
 import LiveMapWidget, { getCityCoordinates } from "../components/dashboard/LiveMapWidget";
 import {
@@ -11,8 +12,9 @@ import {
 } from "../services/volunteerService";
 
 export default function VolunteerDashboard() {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("immediate"); // "immediate" or "scheduled"
+  const [activeTab, setActiveTab] = useState("immediate");
   const [actionLoading, setActionLoading] = useState(null);
   const [pickupOtpInput, setPickupOtpInput] = useState("");
   const [deliveryOtpInput, setDeliveryOtpInput] = useState("");
@@ -120,10 +122,8 @@ export default function VolunteerDashboard() {
   const active = dashboardData.active_delivery;
   const vol = dashboardData.volunteer;
 
-  // City Geocoding for Map Coordinates
   const [cityLat, cityLng] = getCityCoordinates(vol?.city || "bengaluru");
 
-  // Build GIS Map locations array for live route visualization
   const mapLocations = [];
   if (active) {
     mapLocations.push({
@@ -162,7 +162,7 @@ export default function VolunteerDashboard() {
 
   return (
     <VolunteerDashboardLayout>
-      <div className="max-w-7xl mx-auto space-y-8">
+      <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-amber-500"></div>
@@ -170,19 +170,19 @@ export default function VolunteerDashboard() {
         ) : (
           <>
             {/* Header Banner & Online Toggle */}
-            <div className="bg-slate-900 rounded-3xl p-8 text-white shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border border-slate-800">
+            <div className="bg-slate-900 rounded-2xl sm:rounded-3xl p-6 sm:p-8 text-white shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border border-slate-800">
               <div>
                 <div className="flex items-center gap-3 mb-2">
-                  <span className="bg-amber-400 text-slate-900 font-extrabold text-xs px-3 py-1 rounded-full uppercase tracking-wider">
-                    🛵 Verified Transport Rider
+                  <span className="bg-amber-400 text-slate-900 font-extrabold text-[10px] sm:text-xs px-3 py-1 rounded-full uppercase tracking-wider">
+                    🛵 {t("roles.volunteer")}
                   </span>
                   <span className="text-xs text-slate-400 font-medium">Vehicle: {vol.vehicle_type || "Bike"}</span>
                 </div>
 
-                <h1 className="text-3xl font-bold">
-                  Welcome back, {vol.full_name || "Volunteer Rider"} 👋
+                <h1 className="text-2xl sm:text-3xl font-bold">
+                  {t("welcome_back")}, {vol.full_name || "Volunteer Rider"} 👋
                 </h1>
-                <p className="text-slate-300 text-sm mt-1">
+                <p className="text-slate-300 text-xs sm:text-sm mt-1">
                   Connecting local food donors (Businesses & Households) with registered NGOs across {vol.city || "your region"}.
                 </p>
               </div>
@@ -190,9 +190,9 @@ export default function VolunteerDashboard() {
               {/* Online / Offline Toggle */}
               <div className="bg-slate-800 p-3 rounded-2xl border border-slate-700 flex items-center gap-4 self-start md:self-auto">
                 <div>
-                  <p className="text-xs font-bold text-slate-300">Rider Dispatch Status</p>
+                  <p className="text-[10px] sm:text-xs font-bold text-slate-300">Rider Dispatch Status</p>
                   <p className={`text-xs font-extrabold ${vol.is_online ? "text-emerald-400" : "text-rose-400"}`}>
-                    {vol.is_online ? "🟢 Online & Ready for Orders" : "🔴 Offline (Paused)"}
+                    {vol.is_online ? "🟢 Online & Ready" : "🔴 Offline (Paused)"}
                   </p>
                 </div>
 
@@ -209,36 +209,36 @@ export default function VolunteerDashboard() {
               </div>
             </div>
 
-            {/* Rider Performance KPI Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                <div className="text-3xl mb-2">🚚</div>
-                <p className="text-xs font-semibold text-gray-500">Deliveries Completed</p>
-                <h3 className="text-2xl font-extrabold text-gray-900 mt-1">
+            {/* Rider Performance KPI Stats - 2 cards per row on mobile */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
+              <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-gray-100">
+                <div className="text-2xl sm:text-3xl mb-1 sm:mb-2">🚚</div>
+                <p className="text-[10px] sm:text-xs font-bold text-gray-500 uppercase">{t("dashboards.deliveries_completed")}</p>
+                <h3 className="text-xl sm:text-2xl font-extrabold text-gray-900 mt-1">
                   {dashboardData.stats.deliveries_completed}
                 </h3>
               </div>
 
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                <div className="text-3xl mb-2">🗺️</div>
-                <p className="text-xs font-semibold text-gray-500">Distance Covered</p>
-                <h3 className="text-2xl font-extrabold text-blue-600 mt-1">
+              <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-gray-100">
+                <div className="text-2xl sm:text-3xl mb-1 sm:mb-2">🗺️</div>
+                <p className="text-[10px] sm:text-xs font-bold text-gray-500 uppercase">{t("dashboards.distance_covered")}</p>
+                <h3 className="text-xl sm:text-2xl font-extrabold text-blue-600 mt-1">
                   {dashboardData.stats.total_distance_km} km
                 </h3>
               </div>
 
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                <div className="text-3xl mb-2">⏱️</div>
-                <p className="text-xs font-semibold text-gray-500">Hours Volunteered</p>
-                <h3 className="text-2xl font-extrabold text-purple-600 mt-1">
+              <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-gray-100">
+                <div className="text-2xl sm:text-3xl mb-1 sm:mb-2">⏱️</div>
+                <p className="text-[10px] sm:text-xs font-bold text-gray-500 uppercase">{t("dashboards.hours_volunteered")}</p>
+                <h3 className="text-xl sm:text-2xl font-extrabold text-purple-600 mt-1">
                   {dashboardData.stats.hours_volunteered} hrs
                 </h3>
               </div>
 
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                <div className="text-3xl mb-2">⭐</div>
-                <p className="text-xs font-semibold text-gray-500">Logistics Karma Points</p>
-                <h3 className="text-2xl font-extrabold text-amber-500 mt-1">
+              <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-gray-100">
+                <div className="text-2xl sm:text-3xl mb-1 sm:mb-2">⭐</div>
+                <p className="text-[10px] sm:text-xs font-bold text-gray-500 uppercase">{t("dashboards.logistics_karma")}</p>
+                <h3 className="text-xl sm:text-2xl font-extrabold text-amber-500 mt-1">
                   {dashboardData.stats.karma_points} XP
                 </h3>
               </div>
@@ -246,16 +246,16 @@ export default function VolunteerDashboard() {
 
             {/* LIVE GIS ROUTE MAP WIDGET */}
             <LiveMapWidget
-              title="Live Delivery Route & GPS Navigation"
+              title={t("cards.gis_map")}
               locations={mapLocations}
               center={[cityLat, cityLng]}
               route={activeRoute}
               height="380px"
             />
 
-            {/* ACTIVE IN-PROGRESS DELIVERY STEPPER WITH DIRECT BUTTONS & 2-STEP OTP VERIFICATION */}
+            {/* ACTIVE IN-PROGRESS DELIVERY STEPPER */}
             {active && (
-              <div className="bg-gradient-to-r from-slate-900 to-indigo-950 rounded-3xl p-8 text-white shadow-xl border border-indigo-800">
+              <div className="bg-gradient-to-r from-slate-900 to-indigo-950 rounded-3xl p-6 sm:p-8 text-white shadow-xl border border-indigo-800">
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-3">
                     <span className="bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-full animate-pulse">
@@ -268,9 +268,9 @@ export default function VolunteerDashboard() {
                   </span>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-8 mb-8">
+                <div className="grid md:grid-cols-2 gap-6 sm:gap-8 mb-8">
                   {/* Pickup Info & Step 1 OTP Verification */}
-                  <div className="bg-slate-800/80 p-6 rounded-2xl border border-slate-700 space-y-4">
+                  <div className="bg-slate-800/80 p-5 sm:p-6 rounded-2xl border border-slate-700 space-y-4">
                     <div className="flex items-center justify-between">
                       <p className="text-xs font-bold text-amber-400 uppercase tracking-wider">
                         📍 Step 1: Donor Pickup
@@ -293,7 +293,6 @@ export default function VolunteerDashboard() {
                       Donor Contact: {active.pickup_contact_name} • 📞 {active.pickup_phone}
                     </p>
 
-                    {/* Pickup OTP Input */}
                     {!active.pickup_otp_verified && (
                       <div className="pt-2 bg-slate-900 p-3 rounded-xl border border-slate-700">
                         <label className="block text-[11px] font-bold text-amber-400 mb-1.5 uppercase">
@@ -316,13 +315,12 @@ export default function VolunteerDashboard() {
                             Verify OTP
                           </button>
                         </div>
-                        <p className="text-[10px] text-slate-400 mt-1">Hint: Donor OTP code is displayed on donor card (Demo: 1234)</p>
                       </div>
                     )}
                   </div>
 
                   {/* Dropoff Info & Step 2 OTP Verification */}
-                  <div className="bg-slate-800/80 p-6 rounded-2xl border border-slate-700 space-y-4">
+                  <div className="bg-slate-800/80 p-5 sm:p-6 rounded-2xl border border-slate-700 space-y-4">
                     <div className="flex items-center justify-between">
                       <p className="text-xs font-bold text-emerald-400 uppercase tracking-wider">
                         🏁 Step 2: NGO Dropoff Handover
@@ -344,7 +342,6 @@ export default function VolunteerDashboard() {
                       NGO Contact Phone: 📞 {active.dropoff_phone}
                     </p>
 
-                    {/* Delivery OTP Input */}
                     {!active.delivery_otp_verified && (
                       <div className="pt-2 bg-slate-900 p-3 rounded-xl border border-slate-700">
                         <label className="block text-[11px] font-bold text-emerald-400 mb-1.5 uppercase">
@@ -367,13 +364,11 @@ export default function VolunteerDashboard() {
                             Verify OTP
                           </button>
                         </div>
-                        <p className="text-[10px] text-slate-400 mt-1">Hint: Recipient NGO provides this OTP at dropoff (Demo: 1234)</p>
                       </div>
                     )}
                   </div>
                 </div>
 
-                {/* Direct 1-Click Status Update Buttons (Restored Original Controls) */}
                 <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-slate-800">
                   <p className="text-xs text-slate-300 font-semibold">
                     Current Status: <span className="text-amber-300 font-bold uppercase">{active.status}</span>
@@ -412,28 +407,28 @@ export default function VolunteerDashboard() {
             )}
 
             {/* Delivery Requests Navigation Tabs */}
-            <div className="flex items-center justify-between border-b pb-4">
+            <div className="flex items-center justify-between border-b pb-4 flex-wrap gap-3">
               <div className="flex gap-4">
                 <button
                   onClick={() => setActiveTab("immediate")}
-                  className={`text-lg font-bold pb-2 transition border-b-2 ${
+                  className={`text-base sm:text-lg font-bold pb-2 transition border-b-2 ${
                     activeTab === "immediate"
                       ? "border-amber-500 text-gray-900 font-extrabold"
                       : "border-transparent text-gray-400 hover:text-gray-600"
                   }`}
                 >
-                  ⚡ Urgent Delivery Requests ({dashboardData.available_requests.length})
+                  ⚡ {t("nav.delivery_requests")} ({dashboardData.available_requests.length})
                 </button>
 
                 <button
                   onClick={() => setActiveTab("scheduled")}
-                  className={`text-lg font-bold pb-2 transition border-b-2 ${
+                  className={`text-base sm:text-lg font-bold pb-2 transition border-b-2 ${
                     activeTab === "scheduled"
                       ? "border-amber-500 text-gray-900 font-extrabold"
                       : "border-transparent text-gray-400 hover:text-gray-600"
                   }`}
                 >
-                  📅 Scheduled Pickups ({dashboardData.scheduled_deliveries.length})
+                  📅 {t("nav.scheduled_deliveries")} ({dashboardData.scheduled_deliveries.length})
                 </button>
               </div>
 
@@ -449,11 +444,11 @@ export default function VolunteerDashboard() {
             {activeTab === "immediate" && (
               <div className="space-y-6">
                 {!vol.is_online && (
-                  <div className="bg-amber-50 border border-amber-200 p-4 rounded-2xl text-amber-900 text-sm font-medium flex items-center justify-between">
+                  <div className="bg-amber-50 border border-amber-200 p-4 rounded-2xl text-amber-900 text-xs sm:text-sm font-medium flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                     <span>⚠️ You are currently offline. Switch your status to Online to accept nearby delivery orders.</span>
                     <button
                       onClick={handleToggleOnline}
-                      className="bg-amber-500 text-slate-900 text-xs font-bold px-3 py-1.5 rounded-lg"
+                      className="bg-amber-500 text-slate-900 text-xs font-bold px-3 py-1.5 rounded-lg whitespace-nowrap"
                     >
                       Go Online Now
                     </button>
@@ -461,10 +456,10 @@ export default function VolunteerDashboard() {
                 )}
 
                 {dashboardData.available_requests.length === 0 ? (
-                  <div className="bg-white rounded-2xl p-12 text-center shadow-sm border border-gray-100">
+                  <div className="bg-white rounded-2xl p-10 text-center shadow-sm border border-gray-100">
                     <p className="text-5xl mb-4">📦</p>
-                    <h3 className="text-xl font-bold text-gray-800">No pending delivery requests nearby</h3>
-                    <p className="text-gray-500 mt-2 max-w-md mx-auto">
+                    <h3 className="text-lg sm:text-xl font-bold text-gray-800">No pending delivery requests nearby</h3>
+                    <p className="text-gray-500 text-xs sm:text-sm mt-2 max-w-md mx-auto">
                       New delivery orders will appear here automatically when food donors and NGOs match!
                     </p>
                   </div>
@@ -477,7 +472,7 @@ export default function VolunteerDashboard() {
                       >
                         <div className="flex items-center justify-between border-b pb-3">
                           <div>
-                            <p className="font-extrabold text-gray-900 text-lg">🍱 {req.food_name}</p>
+                            <p className="font-extrabold text-gray-900 text-base sm:text-lg">🍱 {req.food_name}</p>
                             <p className="text-xs text-gray-500">Category: {req.food_category} • {req.quantity}</p>
                           </div>
                           <span className="bg-amber-100 text-amber-800 text-xs font-extrabold px-3 py-1 rounded-full">
@@ -507,9 +502,9 @@ export default function VolunteerDashboard() {
                           <button
                             onClick={() => handleAcceptTask(req.donation_id)}
                             disabled={!vol.is_online || actionLoading === req.donation_id}
-                            className="bg-amber-500 hover:bg-amber-600 text-slate-900 font-extrabold text-xs px-5 py-2.5 rounded-xl shadow transition"
+                            className="bg-amber-500 hover:bg-amber-600 text-slate-900 font-extrabold text-xs px-4 py-2 rounded-xl shadow transition"
                           >
-                            {actionLoading === req.donation_id ? "Accepting..." : "⚡ Accept Delivery Task"}
+                            {actionLoading === req.donation_id ? "Accepting..." : "⚡ Accept Task"}
                           </button>
                         </div>
                       </div>
@@ -523,10 +518,10 @@ export default function VolunteerDashboard() {
             {activeTab === "scheduled" && (
               <div className="space-y-6">
                 {dashboardData.scheduled_deliveries.length === 0 ? (
-                  <div className="bg-white rounded-2xl p-12 text-center shadow-sm border border-gray-100">
+                  <div className="bg-white rounded-2xl p-10 text-center shadow-sm border border-gray-100">
                     <p className="text-5xl mb-4">📅</p>
-                    <h3 className="text-xl font-bold text-gray-800">No scheduled advance pickups</h3>
-                    <p className="text-gray-500 mt-2 max-w-md mx-auto">
+                    <h3 className="text-lg sm:text-xl font-bold text-gray-800">No scheduled advance pickups</h3>
+                    <p className="text-gray-500 text-xs sm:text-sm mt-2 max-w-md mx-auto">
                       Advance bakery surplus or event pickups scheduled for tomorrow will appear here.
                     </p>
                   </div>
@@ -539,7 +534,7 @@ export default function VolunteerDashboard() {
                       >
                         <div className="flex items-center justify-between border-b pb-3">
                           <div>
-                            <p className="font-extrabold text-gray-900 text-lg">🍱 {req.food_name}</p>
+                            <p className="font-extrabold text-gray-900 text-base sm:text-lg">🍱 {req.food_name}</p>
                             <p className="text-xs text-gray-500">{req.quantity} • Scheduled Delivery</p>
                           </div>
                           <span className="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full">
@@ -558,7 +553,7 @@ export default function VolunteerDashboard() {
                             onClick={() => handleAcceptTask(req.donation_id)}
                             className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow transition"
                           >
-                            📅 Reserve Scheduled Delivery
+                            📅 Reserve Delivery
                           </button>
                         </div>
                       </div>

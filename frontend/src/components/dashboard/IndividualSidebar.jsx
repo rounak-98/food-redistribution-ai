@@ -6,9 +6,9 @@ export default function IndividualSidebar({ collapsed, setCollapsed, mobileOpen,
 
   const menu = [
     { name: t("nav.dashboard"), path: "/dashboard/individual", icon: "🏠" },
-    { name: "My Donations", path: "/individual/donations", icon: "🍱" },
-    { name: "Nearby NGOs", path: "/individual/ngos", icon: "🤝" },
-    { name: "Badges & Rewards", path: "/individual/badges", icon: "🏆" },
+    { name: t("nav.my_donations"), path: "/individual/donations", icon: "🍱" },
+    { name: t("nav.nearby_ngos"), path: "/individual/ngos", icon: "🤝" },
+    { name: t("nav.badges_rewards"), path: "/individual/badges", icon: "🏆" },
     { name: t("nav.profile"), path: "/individual/profile", icon: "👤" },
   ];
 
