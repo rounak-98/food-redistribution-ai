@@ -154,10 +154,10 @@ export default function BusinessDashboard() {
           </button>
         </div>
 
-        {/* Dashboard Overview KPI Stats - 2 Cards per row on Mobile! */}
+        {/* Dashboard Overview KPI Stats */}
         <div>
           <h2 className="text-xl sm:text-2xl font-extrabold mb-4 sm:mb-6 text-slate-900">
-            Operational Overview
+            {t("kpi.operational_overview")}
           </h2>
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
@@ -235,10 +235,10 @@ export default function BusinessDashboard() {
           </div>
         </div>
 
-        {/* Quick Actions - 2 Cards per row on Mobile! */}
+        {/* Quick Actions */}
         <div>
           <h2 className="text-xl sm:text-2xl font-extrabold mb-4 sm:mb-6 text-slate-900">
-            Quick Actions
+            {t("kpi.quick_actions")}
           </h2>
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
@@ -285,12 +285,12 @@ export default function BusinessDashboard() {
 
           <div className="bg-white rounded-2xl shadow-md p-5 sm:p-8 border border-gray-100">
             <h2 className="text-xl sm:text-2xl font-extrabold mb-4 sm:mb-6 text-gray-900">
-              Recent Donations
+              {t("kpi.recent_donations")}
             </h2>
 
             <ul className="space-y-3 sm:space-y-4">
               {safeDonations.length === 0 ? (
-                <p className="text-gray-500 py-6 text-center text-xs sm:text-sm">No donations posted yet.</p>
+                <p className="text-gray-500 py-6 text-center text-xs sm:text-sm">{t("kpi.no_donations")}</p>
               ) : (
                 safeDonations.slice(0, 5).map((item) => (
                   <li
@@ -324,7 +324,7 @@ export default function BusinessDashboard() {
         {/* Live GIS Logistics Map Section */}
         <div>
           <LiveMapWidget
-            title="Live Pickup & Transport GIS Logistics Map"
+            title={t("cards.gis_map")}
             locations={bizLocations}
             center={[donorLat, donorLng]}
             height="380px"

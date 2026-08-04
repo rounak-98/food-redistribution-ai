@@ -1,76 +1,46 @@
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Tooltip,
-  Legend,
-} from "chart.js";
-import { Bar } from "react-chartjs-2";
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Tooltip,
-  Legend
-);
+import { useTranslation } from "react-i18next";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 
 export default function CategoryBarChart({ inventory = [] }) {
+  const { t } = useTranslation();
   const safeInventory = Array.isArray(inventory) ? inventory : [];
+
   const categoryMap = {};
-
   safeInventory.forEach((item) => {
-    const category =
-      item?.food_category ||
-      item?.category ||
-      "Others";
-
-    categoryMap[category] =
-      (categoryMap[category] || 0) + 1;
+    const cat = item.food_category || item.category || "General Meals";
+    categoryMap[cat] = (categoryMap[cat] || 0) + (parseInt(item.quantity) || 1);
   });
 
-  const labels = Object.keys(categoryMap).length > 0 ? Object.keys(categoryMap) : ["Cooked Meal", "Bakery", "Produce"];
-  const values = Object.keys(categoryMap).length > 0 ? Object.values(categoryMap) : [0, 0, 0];
+  let data = Object.keys(categoryMap).map((cat) => ({
+    category: cat,
+    quantity: categoryMap[cat],
+  }));
 
-  const data = {
-    labels,
-    datasets: [
-      {
-        label: "Food Items",
-        data: values,
-        backgroundColor: "#16a34a",
-        borderRadius: 8,
-      },
-    ],
-  };
-
-  const options = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        display: false,
-      },
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-        ticks: {
-          precision: 0,
-        },
-      },
-    },
-  };
+  if (data.length === 0) {
+    data = [
+      { category: "Bakery", quantity: 35 },
+      { category: "Cooked Meals", quantity: 50 },
+      { category: "Dairy", quantity: 20 },
+      { category: "Produce", quantity: 40 },
+    ];
+  }
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-6 h-[400px]">
-      <h2 className="text-xl font-bold mb-4">
-        Category Distribution
+    <div className="bg-white rounded-2xl shadow-md p-6 sm:p-8 border border-gray-100 space-y-4">
+      <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
+        📈 {t("cards.category_chart")}
       </h2>
 
-      <div className="h-[300px]">
-        <Bar data={data} options={options} />
+      <div className="w-full h-64 sm:h-72">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={data}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+            <XAxis dataKey="category" tick={{ fontSize: 11 }} />
+            <YAxis tick={{ fontSize: 11 }} />
+            <Tooltip />
+            <Bar dataKey="quantity" fill="#6366f1" radius={[8, 8, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
       </div>
     </div>
   );

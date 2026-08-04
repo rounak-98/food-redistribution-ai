@@ -34,12 +34,30 @@
     "food_saved": "Food Saved (kg)",
     "co2_avoided": "CO₂ Avoided (kg)",
     "tax_credit": "Sec 80G Tax Credit (Est.)",
-    "waste_prevented": "Waste Prevented (kg)"
+    "waste_prevented": "Waste Prevented (kg)",
+    "operational_overview": "Operational Overview",
+    "quick_actions": "Quick Actions",
+    "recent_donations": "Recent Donations",
+    "no_donations": "No donations posted yet."
+  },
+  "cards": {
+    "dispatch_tracker": "Live Pickup & Dispatch Tracker",
+    "dispatch_subtitle": "Real-time volunteer rider assignment & NGO delivery status",
+    "surplus_forecast": "AI Surplus Food Forecast & Spoilage Classifier",
+    "surplus_subtitle": "Scikit-Learn ML predictions for 7-day surplus & risk detection",
+    "ai_insights": "Smart AI Inventory Insights",
+    "insights_subtitle": "Real-time spoilage risk analysis & inventory health score",
+    "inventory_distribution": "Inventory Category Breakdown",
+    "category_chart": "Stock Quantity by Category",
+    "gis_map": "Live Pickup & Transport GIS Logistics Map"
   },
   "ml": {
     "title": "AI Surplus Forecast & Risk",
     "active": "ML Model Active",
-    "prediction": "ML Prediction"
+    "prediction": "ML Prediction",
+    "spoilage_risk": "Spoilage Risk Level",
+    "forecasted_surplus": "7-Day Surplus Forecast (kg)",
+    "recommended_ngo": "Best Recommended NGO Match"
   },
   "pwa": {
     "install_title": "Install FoodBridge App",

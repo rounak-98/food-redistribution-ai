@@ -1,8 +1,11 @@
+import { useTranslation } from "react-i18next";
 import HealthProgress from "./HealthProgress";
 import InsightMetric from "./InsightMetric";
 import RecommendationList from "./RecommendationList";
 
 export default function AIInsightCard({ inventory = [], title, value, description }) {
+  const { t } = useTranslation();
+
   if (title) {
     return (
       <div className="bg-white rounded-2xl shadow-md p-6 border border-gray-100 space-y-2">
@@ -22,7 +25,6 @@ export default function AIInsightCard({ inventory = [], title, value, descriptio
 
   const total = safeInventory.length;
 
-  // Dynamic health score calculation
   const healthScore =
     total === 0
       ? 100
@@ -52,15 +54,15 @@ export default function AIInsightCard({ inventory = [], title, value, descriptio
     recommendations.push("No immediate action required. All items in good status.");
 
   return (
-    <div className="bg-gradient-to-br from-green-50 to-white rounded-2xl shadow-lg p-8 border border-green-100">
-      <h2 className="text-2xl font-bold text-green-700">🧠 FoodBridge Intelligence</h2>
-      <p className="text-gray-500 mt-2 text-sm">
-        AI powered inventory monitoring and food waste recommendations
+    <div className="bg-gradient-to-br from-green-50 to-white rounded-2xl shadow-lg p-6 sm:p-8 border border-green-100">
+      <h2 className="text-xl sm:text-2xl font-extrabold text-green-700">🧠 {t("cards.ai_insights")}</h2>
+      <p className="text-gray-500 mt-1 text-xs sm:text-sm">
+        {t("cards.insights_subtitle")}
       </p>
 
       <HealthProgress score={healthScore} />
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 mt-8">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 mt-6 sm:mt-8">
         <InsightMetric icon="🟢" title="Fresh Items" value={fresh.length} color="text-green-500" />
         <InsightMetric icon="🟠" title="Expiring Soon" value={expiring.length} color="text-orange-500" />
         <InsightMetric icon="🔴" title="Expired" value={expired.length} color="text-red-500" />
@@ -70,12 +72,12 @@ export default function AIInsightCard({ inventory = [], title, value, descriptio
       <div className="grid md:grid-cols-2 gap-4 mt-6">
         <div className="bg-white rounded-xl p-4 shadow-sm border">
           <p className="text-gray-500 text-xs">AI Assessment</p>
-          <h3 className="text-xl font-bold text-green-700 mt-2">{assessment}</h3>
+          <h3 className="text-lg font-bold text-green-700 mt-1">{assessment}</h3>
         </div>
 
         <div className="bg-white rounded-xl p-4 shadow-sm border">
           <p className="text-gray-500 text-xs">Donation Priority</p>
-          <h3 className="text-xl font-bold text-orange-600 mt-2">{priority}</h3>
+          <h3 className="text-lg font-bold text-orange-600 mt-1">{priority}</h3>
         </div>
       </div>
 
