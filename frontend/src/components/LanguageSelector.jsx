@@ -12,8 +12,23 @@ const languages = [
 export default function LanguageSelector() {
   const { i18n, t } = useTranslation();
   const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [isStandalone, setIsStandalone] = useState(false);
 
   useEffect(() => {
+    const checkStandalone = () => {
+      const isStandaloneApp =
+        window.matchMedia("(display-mode: standalone)").matches ||
+        window.navigator.standalone === true ||
+        document.referrer.includes("android-app://");
+      setIsStandalone(isStandaloneApp);
+    };
+
+    checkStandalone();
+
+    const mediaQuery = window.matchMedia("(display-mode: standalone)");
+    const listener = (e) => setIsStandalone(e.matches);
+    mediaQuery.addEventListener("change", listener);
+
     const handleBeforeInstallPrompt = (e) => {
       e.preventDefault();
       setDeferredPrompt(e);
@@ -21,6 +36,7 @@ export default function LanguageSelector() {
 
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
     return () => {
+      mediaQuery.removeEventListener("change", listener);
       window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
     };
   }, []);
@@ -60,14 +76,16 @@ export default function LanguageSelector() {
         </select>
       </div>
 
-      {/* PWA App Install Button */}
-      <button
-        onClick={handleInstallPWA}
-        className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-extrabold text-xs px-3.5 py-2 rounded-xl transition-all shadow-sm flex items-center gap-2 cursor-pointer border border-emerald-400"
-      >
-        <FaDownload className="text-xs" />
-        <span>{t("pwa.install_btn") || "📲 Install App"}</span>
-      </button>
+      {/* PWA App Install Button - Automatically hidden when running inside installed app window */}
+      {!isStandalone && (
+        <button
+          onClick={handleInstallPWA}
+          className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-extrabold text-xs px-3.5 py-2 rounded-xl transition-all shadow-sm flex items-center gap-2 cursor-pointer border border-emerald-400"
+        >
+          <FaDownload className="text-xs" />
+          <span>{t("pwa.install_btn") || "📲 Install App"}</span>
+        </button>
+      )}
     </div>
   );
 }

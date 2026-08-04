@@ -6,12 +6,21 @@ export default function PWAInstallPrompt() {
   const { t } = useTranslation();
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [showPrompt, setShowPrompt] = useState(false);
+  const [isStandalone, setIsStandalone] = useState(false);
 
   useEffect(() => {
+    const isStandaloneApp =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      window.navigator.standalone === true ||
+      document.referrer.includes("android-app://");
+    setIsStandalone(isStandaloneApp);
+
     const handleBeforeInstallPrompt = (e) => {
       e.preventDefault();
       setDeferredPrompt(e);
-      setShowPrompt(true);
+      if (!isStandaloneApp) {
+        setShowPrompt(true);
+      }
     };
 
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
@@ -32,7 +41,7 @@ export default function PWAInstallPrompt() {
     setShowPrompt(false);
   };
 
-  if (!showPrompt) return null;
+  if (!showPrompt || isStandalone) return null;
 
   return (
     <div className="fixed bottom-5 right-5 z-50 max-w-sm bg-slate-900 text-white rounded-2xl shadow-2xl p-5 border border-slate-700 animate-slide-up flex flex-col gap-3">
@@ -50,7 +59,7 @@ export default function PWAInstallPrompt() {
           onClick={() => setShowPrompt(false)}
           className="text-slate-400 hover:text-white p-1 transition"
         >
-          <FaTimes text-xs />
+          <FaTimes className="text-xs" />
         </button>
       </div>
 
