@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import StatCard from "../components/dashboard/StatCard";
 import QuickActionCard from "../components/dashboard/QuickActionCard";
 import NGODashboardLayout from "../components/dashboard/NGODashboardLayout";
@@ -7,6 +8,7 @@ import LiveMapWidget from "../components/dashboard/LiveMapWidget";
 import { getNGODashboardStats } from "../services/ngoService";
 
 export default function NGODashboard() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState({
@@ -37,7 +39,6 @@ export default function NGODashboard() {
 
   const ngoProfile = dashboardData.ngo_profile;
 
-  // Build Map locations array for NGO Dashboard
   const ngoLocations = [
     {
       id: "ngo-self",
@@ -73,19 +74,19 @@ export default function NGODashboard() {
 
   return (
     <NGODashboardLayout>
-      <div className="max-w-7xl mx-auto space-y-8">
+      <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">
-              NGO Overview Dashboard
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900">
+              {t("app_name")} - {t("roles.ngo")} Dashboard
             </h1>
-            <p className="text-gray-600 mt-1">
+            <p className="text-gray-600 text-xs sm:text-sm mt-1">
               Real-time food redistribution metrics & nearby available donations
             </p>
           </div>
           <button
             onClick={fetchDashboardStats}
-            className="flex items-center gap-2 bg-blue-50 text-blue-600 px-4 py-2 rounded-xl hover:bg-blue-100 font-medium transition self-start md:self-auto"
+            className="flex items-center gap-2 bg-blue-50 text-blue-600 text-xs sm:text-sm px-4 py-2 rounded-xl hover:bg-blue-100 font-bold transition self-start md:self-auto border border-blue-200"
           >
             🔄 Refresh Data
           </button>
@@ -97,10 +98,10 @@ export default function NGODashboard() {
           </div>
         ) : (
           <>
-            {/* Stats Overview Grid */}
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Stats Overview Grid - 2 cards per row on mobile */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
               <StatCard
-                title="Available Donations"
+                title={t("kpi.available_donations")}
                 value={dashboardData.available}
                 icon="🍱"
                 color="text-green-600"
@@ -112,7 +113,7 @@ export default function NGODashboard() {
                 color="text-blue-600"
               />
               <StatCard
-                title="Completed Pickups"
+                title={t("kpi.completed_pickups")}
                 value={dashboardData.completed}
                 icon="✅"
                 color="text-purple-600"
@@ -127,45 +128,40 @@ export default function NGODashboard() {
 
             {/* NGO Location & Address Widget */}
             {ngoProfile && (
-              <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl p-6 text-white shadow-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+              <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl p-5 sm:p-6 text-white shadow-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                  <div className="flex items-center gap-2 text-blue-200 text-sm font-semibold uppercase tracking-wider mb-1">
+                  <div className="flex items-center gap-2 text-blue-200 text-xs font-semibold uppercase tracking-wider mb-1">
                     📍 Current Location & Operational Region
                   </div>
-                  <h3 className="text-xl font-bold">
+                  <h3 className="text-lg sm:text-xl font-bold">
                     {ngoProfile.ngo_name}
                   </h3>
-                  <p className="text-blue-100 text-sm mt-1">
+                  <p className="text-blue-100 text-xs sm:text-sm mt-1">
                     {ngoProfile.address}, {ngoProfile.city}, {ngoProfile.state} - {ngoProfile.pincode}
-                  </p>
-                  <p className="text-xs text-blue-200 mt-1">
-                    GPS Coordinates: {ngoProfile.latitude && ngoProfile.longitude 
-                      ? `${ngoProfile.latitude}, ${ngoProfile.longitude}` 
-                      : "Not set (Click edit profile to enable precise distance calculation)"}
                   </p>
                 </div>
                 <button
                   onClick={() => navigate("/ngo/profile")}
-                  className="bg-white text-blue-700 px-5 py-2.5 rounded-xl font-semibold hover:bg-blue-50 transition shadow-sm whitespace-nowrap"
+                  className="bg-white text-blue-700 px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold hover:bg-blue-50 transition shadow-sm whitespace-nowrap"
                 >
-                  ⚙️ Update Location / Profile
+                  ⚙️ Update Profile
                 </button>
               </div>
             )}
 
             {/* Live GIS Map Component */}
             <LiveMapWidget
-              title="Nearby Food Surplus & Rider Map"
+              title={t("cards.gis_map")}
               locations={ngoLocations}
               height="380px"
             />
 
-            {/* Quick Actions Grid */}
+            {/* Quick Actions Grid - 2 cards per row on mobile */}
             <div>
-              <h2 className="text-2xl font-bold mb-6 text-gray-900">
-                Quick Navigation
+              <h2 className="text-xl sm:text-2xl font-extrabold mb-4 sm:mb-6 text-gray-900">
+                {t("kpi.quick_actions")}
               </h2>
-              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
                 <QuickActionCard
                   title="Browse Donations"
                   icon="🍱"
@@ -177,101 +173,15 @@ export default function NGODashboard() {
                   path="/ngo/accepted"
                 />
                 <QuickActionCard
-                  title="Donation History"
+                  title={t("actions.history")}
                   icon="📜"
                   path="/ngo/history"
                 />
                 <QuickActionCard
-                  title="NGO Profile"
+                  title={t("nav.profile")}
                   icon="👤"
                   path="/ngo/profile"
                 />
-              </div>
-            </div>
-
-            {/* Dynamic AI Cards & Recent Donations */}
-            <div className="grid lg:grid-cols-2 gap-8">
-              {/* AI Recommendation Engine */}
-              <div className="bg-white rounded-2xl shadow-md p-8 border border-gray-100">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                    🤖 AI Optimization Insights
-                  </h2>
-                  <span className="bg-blue-100 text-blue-700 text-xs px-3 py-1 rounded-full font-semibold">
-                    Live Engine
-                  </span>
-                </div>
-
-                <div className="space-y-4">
-                  {dashboardData.ai_recommendations && dashboardData.ai_recommendations.length > 0 ? (
-                    dashboardData.ai_recommendations.map((rec, idx) => (
-                      <div
-                        key={idx}
-                        className={`p-4 rounded-xl flex items-start gap-3 border ${
-                          idx % 2 === 0
-                            ? "bg-green-50 text-green-900 border-green-200"
-                            : "bg-blue-50 text-blue-900 border-blue-200"
-                        }`}
-                      >
-                        <span className="text-xl">💡</span>
-                        <p className="text-sm font-medium leading-relaxed">{rec}</p>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="bg-gray-50 p-4 rounded-xl text-gray-600 text-sm">
-                      No active AI insights available at the moment.
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Real Recent Available Donations */}
-              <div className="bg-white rounded-2xl shadow-md p-8 border border-gray-100">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-gray-900">
-                    Nearest Available Food
-                  </h2>
-                  <button
-                    onClick={() => navigate("/ngo/donations")}
-                    className="text-sm font-semibold text-blue-600 hover:text-blue-800 transition"
-                  >
-                    View All →
-                  </button>
-                </div>
-
-                {dashboardData.recent_donations && dashboardData.recent_donations.length > 0 ? (
-                  <ul className="space-y-4">
-                    {dashboardData.recent_donations.map((item) => (
-                      <li
-                        key={item.id}
-                        onClick={() => navigate(`/ngo/donation-details/${item.id}`)}
-                        className="flex items-center justify-between p-3.5 border rounded-xl hover:border-blue-300 hover:bg-blue-50/50 cursor-pointer transition"
-                      >
-                        <div>
-                          <p className="font-semibold text-gray-900">
-                            🍱 {item.food_name}
-                          </p>
-                          <p className="text-xs text-gray-500 mt-0.5">
-                            Donor: {item.business_name}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-bold text-sm text-gray-800">
-                            {item.quantity}
-                          </p>
-                          <span className="text-xs text-blue-600 font-medium">
-                            {item.distance_km ? `${item.distance_km} km away` : "Nearby"}
-                          </span>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    <p className="text-3xl mb-2">🍃</p>
-                    <p className="text-sm font-medium">No available food donations listed right now.</p>
-                  </div>
-                )}
               </div>
             </div>
           </>
