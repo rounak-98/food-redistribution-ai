@@ -9,33 +9,58 @@ export default function PWAInstallPrompt() {
   const [isStandalone, setIsStandalone] = useState(false);
 
   useEffect(() => {
-    const isStandaloneApp =
-      window.matchMedia("(display-mode: standalone)").matches ||
-      window.navigator.standalone === true ||
-      document.referrer.includes("android-app://");
-    setIsStandalone(isStandaloneApp);
+    const checkStandalone = () => {
+      const isAlreadyInstalled = localStorage.getItem("pwa_installed") === "true";
+      const isStandaloneApp =
+        isAlreadyInstalled ||
+        window.matchMedia("(display-mode: standalone)").matches ||
+        window.matchMedia("(display-mode: minimal-ui)").matches ||
+        window.matchMedia("(display-mode: fullscreen)").matches ||
+        window.navigator.standalone === true ||
+        document.referrer.includes("android-app://");
+      
+      setIsStandalone(isStandaloneApp);
+    };
+
+    checkStandalone();
+
+    const handleAppInstalled = () => {
+      localStorage.setItem("pwa_installed", "true");
+      setIsStandalone(true);
+      setShowPrompt(false);
+      setDeferredPrompt(null);
+    };
 
     const handleBeforeInstallPrompt = (e) => {
       e.preventDefault();
       setDeferredPrompt(e);
-      if (!isStandaloneApp) {
+      const isAlreadyInstalled = localStorage.getItem("pwa_installed") === "true";
+      if (!isAlreadyInstalled && !window.matchMedia("(display-mode: standalone)").matches) {
         setShowPrompt(true);
       }
     };
 
+    window.addEventListener("appinstalled", handleAppInstalled);
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
 
     return () => {
+      window.removeEventListener("appinstalled", handleAppInstalled);
       window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
     };
   }, []);
 
   const handleInstallClick = async () => {
-    if (!deferredPrompt) return;
+    if (!deferredPrompt) {
+      localStorage.setItem("pwa_installed", "true");
+      setIsStandalone(true);
+      setShowPrompt(false);
+      return;
+    }
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
     if (outcome === "accepted") {
-      console.log("User accepted PWA installation");
+      localStorage.setItem("pwa_installed", "true");
+      setIsStandalone(true);
     }
     setDeferredPrompt(null);
     setShowPrompt(false);
@@ -56,7 +81,10 @@ export default function PWAInstallPrompt() {
           </div>
         </div>
         <button
-          onClick={() => setShowPrompt(false)}
+          onClick={() => {
+            setShowPrompt(false);
+            localStorage.setItem("pwa_installed", "true");
+          }}
           className="text-slate-400 hover:text-white p-1 transition"
         >
           <FaTimes className="text-xs" />

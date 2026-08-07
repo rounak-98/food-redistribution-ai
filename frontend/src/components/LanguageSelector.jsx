@@ -16,27 +16,51 @@ export default function LanguageSelector() {
 
   useEffect(() => {
     const checkStandalone = () => {
+      const isAlreadyInstalled = localStorage.getItem("pwa_installed") === "true";
       const isStandaloneApp =
+        isAlreadyInstalled ||
         window.matchMedia("(display-mode: standalone)").matches ||
+        window.matchMedia("(display-mode: minimal-ui)").matches ||
+        window.matchMedia("(display-mode: fullscreen)").matches ||
         window.navigator.standalone === true ||
         document.referrer.includes("android-app://");
+
       setIsStandalone(isStandaloneApp);
     };
 
     checkStandalone();
 
-    const mediaQuery = window.matchMedia("(display-mode: standalone)");
-    const listener = (e) => setIsStandalone(e.matches);
-    mediaQuery.addEventListener("change", listener);
+    const standaloneMedia = window.matchMedia("(display-mode: standalone)");
+    const minimalMedia = window.matchMedia("(display-mode: minimal-ui)");
+    
+    const mediaListener = (e) => {
+      if (e.matches) {
+        localStorage.setItem("pwa_installed", "true");
+        setIsStandalone(true);
+      }
+    };
+
+    standaloneMedia.addEventListener("change", mediaListener);
+    minimalMedia.addEventListener("change", mediaListener);
+
+    const handleAppInstalled = () => {
+      localStorage.setItem("pwa_installed", "true");
+      setIsStandalone(true);
+      setDeferredPrompt(null);
+    };
 
     const handleBeforeInstallPrompt = (e) => {
       e.preventDefault();
       setDeferredPrompt(e);
     };
 
+    window.addEventListener("appinstalled", handleAppInstalled);
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+
     return () => {
-      mediaQuery.removeEventListener("change", listener);
+      standaloneMedia.removeEventListener("change", mediaListener);
+      minimalMedia.removeEventListener("change", mediaListener);
+      window.removeEventListener("appinstalled", handleAppInstalled);
       window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
     };
   }, []);
@@ -51,8 +75,14 @@ export default function LanguageSelector() {
       deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
       if (outcome === "accepted") {
+        localStorage.setItem("pwa_installed", "true");
+        setIsStandalone(true);
         setDeferredPrompt(null);
       }
+    } else {
+      // If native prompt is not available, mark installed to hide button once tapped
+      localStorage.setItem("pwa_installed", "true");
+      setIsStandalone(true);
     }
   };
 
@@ -74,7 +104,7 @@ export default function LanguageSelector() {
         </select>
       </div>
 
-      {/* PWA App Install Button - Automatically hidden when running inside installed app window */}
+      {/* PWA App Install Button - Automatically hidden once installed or in standalone mode */}
       {!isStandalone && (
         <button
           onClick={handleInstallPWA}
