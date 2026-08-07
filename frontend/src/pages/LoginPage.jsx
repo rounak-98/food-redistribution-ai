@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { loginUser } from "../services/authService";
 
 export default function LoginPage() {
@@ -9,25 +9,6 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-
-  useEffect(() => {
-    // Auto-redirect already authenticated users to their dashboard (especially useful offline)
-    const token = localStorage.getItem("token");
-    const userStr = localStorage.getItem("user");
-    if (token && userStr) {
-      try {
-        const user = JSON.parse(userStr);
-        const role = user.role?.toLowerCase();
-        if (role === "business") navigate("/dashboard/business");
-        else if (role === "ngo") navigate("/dashboard/ngo");
-        else if (role === "individual") navigate("/dashboard/individual");
-        else if (role === "volunteer") navigate("/dashboard/volunteer");
-        else if (role === "admin") navigate("/dashboard/admin");
-      } catch (e) {
-        console.error("Error parsing session user:", e);
-      }
-    }
-  }, [navigate]);
 
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
@@ -73,7 +54,7 @@ export default function LoginPage() {
     } catch (err) {
       if (!navigator.onLine || err.message === "Network Error" || err.code === "ERR_NETWORK") {
         setErrorMessage(
-          "⚠️ You are currently offline. Please connect to the internet to log in for the first time. Once logged in, your session will load automatically even offline!"
+          "⚠️ You are currently offline. Please connect to the internet to log in to your account."
         );
       } else {
         setErrorMessage(err.response?.data?.detail || err.message || "Login Failed. Please check credentials.");
