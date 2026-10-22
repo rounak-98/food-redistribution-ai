@@ -10,6 +10,9 @@ from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 
 from app.database.database import Base
+from app.models.business import Business
+from app.models.individual import Individual
+from app.models.ngo import NGO
 
 
 class Donation(Base):

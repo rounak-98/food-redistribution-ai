@@ -290,5 +290,45 @@ def seed_core_accounts(db: Session):
         legacy_user.role = "individual"
         db.commit()
 
+    # Ensure demo and alternate business accounts have password biz123
+    for email in ["demo@test.com", "rounakpathak9080@gmail.com"]:
+        alt_user = db.query(User).filter(User.email == email).first()
+        if alt_user:
+            alt_user.password_hash = hash_password("biz123")
+            alt_user.role = "business"
+            db.commit()
+
+    # Ensure all business accounts have their 105 inventory catalog items preserved and synced
+    from app.models.inventory import Inventory
+    source_items = db.query(Inventory).filter(Inventory.business_id.in_([2, 5])).all()
+    if source_items:
+        seen = {}
+        unique_items = []
+        for it in source_items:
+            if it.product_name not in seen:
+                seen[it.product_name] = True
+                unique_items.append(it)
+
+        for b in db.query(Business).all():
+            b_count = db.query(Inventory).filter(Inventory.business_id == b.id).count()
+            if b_count == 0:
+                for item in unique_items:
+                    db.add(Inventory(
+                        business_id=b.id,
+                        product_name=item.product_name,
+                        category=item.category,
+                        quantity=item.quantity,
+                        unit=item.unit,
+                        barcode=item.barcode,
+                        manufacturing_date=item.manufacturing_date,
+                        expiry_date=item.expiry_date,
+                        purchase_date=item.purchase_date,
+                        supplier=item.supplier,
+                        storage_location=item.storage_location,
+                        image_url=item.image_url,
+                        status=item.status
+                    ))
+                db.commit()
+
     return True
 
