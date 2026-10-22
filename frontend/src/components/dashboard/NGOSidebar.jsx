@@ -1,5 +1,6 @@
 import { NavLink } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { getStoredJSON } from "../../utils/storage";
 
 export default function NGOSidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) {
   const { t } = useTranslation();
@@ -12,8 +13,8 @@ export default function NGOSidebar({ collapsed, setCollapsed, mobileOpen, setMob
     { name: t("nav.profile"), path: "/ngo/profile", icon: "👤" },
   ];
 
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
-  const profile = JSON.parse(localStorage.getItem("profile") || "{}");
+  const user = getStoredJSON("user", {});
+  const profile = getStoredJSON("profile", {});
 
   const accountName = profile?.ngo_name || user?.name || "NGO Partner";
   const accountType = t("roles.ngo");

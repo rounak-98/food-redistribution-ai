@@ -1,5 +1,6 @@
 import { NavLink } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { getStoredJSON } from "../../utils/storage";
 
 export default function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) {
   const { t } = useTranslation();
@@ -13,8 +14,8 @@ export default function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobile
     { name: t("nav.alerts"), path: "/alerts", icon: "🔔" },
   ];
 
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
-  const profile = JSON.parse(localStorage.getItem("profile") || "{}");
+  const user = getStoredJSON("user", {});
+  const profile = getStoredJSON("profile", {});
 
   const accountName =
     user?.role === "ngo"

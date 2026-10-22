@@ -13,13 +13,13 @@ export default function ImpactCertificateModal({ isOpen, onClose, summary, busin
     business?.business_name ||
     donation?.contact_person ||
     "Grand Heritage Kitchen";
-  const city = business?.city || donation?.pickup_address?.split(",")?.pop()?.trim() || "Pune, Maharashtra";
+  const city = business?.city || (donation?.pickup_address ? String(donation.pickup_address).split(",").pop()?.trim() : "") || "Pune, Maharashtra";
   const address = donation?.pickup_address || business?.address || `${city}, India`;
   const phone = donation?.phone || business?.phone || "+91 98765 43210";
   const panNumber = `AAACF${String(business?.id || 101).padStart(4, "0")}G`;
 
   // --- Dynamic Valuation for Individual 80G Receipts ---
-  const rawQty = donation?.quantity || "10 portions";
+  const rawQty = String(donation?.quantity || "10 portions");
   const nums = rawQty.match(/\d+/g);
   const qtyNumber = nums ? parseInt(nums[0], 10) : 10;
   const isPortion = rawQty.toLowerCase().includes("portion") || rawQty.toLowerCase().includes("meal");
@@ -33,10 +33,10 @@ export default function ImpactCertificateModal({ isOpen, onClose, summary, busin
   const certificateNo = `FB-ESG-${String(business?.id || 1).padStart(3, "0")}-${new Date().getFullYear()}`;
 
   // --- Cumulative Summary Dynamic Metrics ---
-  const foodSaved = summary?.food_saved_kg ?? (summary?.total_donations ? summary.total_donations * 15 : 45);
-  const co2Prevented = summary?.co2_saved_kg ?? Math.round(foodSaved * 2.5);
-  const taxCredit = summary?.tax_deduction_estimate_inr ?? Math.round(foodSaved * 140 * 0.25);
-  const mealsCount = summary?.meals_provided ?? (summary?.completed_pickups ? summary.completed_pickups * 50 : Math.round(foodSaved / 0.4));
+  const foodSaved = Number(summary?.food_saved_kg || 0) || (summary?.total_donations ? summary.total_donations * 15 : 45);
+  const co2Prevented = Number(summary?.co2_saved_kg || 0) || Math.round(foodSaved * 2.5);
+  const taxCredit = Number(summary?.tax_deduction_estimate_inr || 0) || Math.round(foodSaved * 140 * 0.25);
+  const mealsCount = Number(summary?.meals_provided || 0) || (summary?.completed_pickups ? summary.completed_pickups * 50 : Math.round(foodSaved / 0.4)) || 30;
 
   return (
     <div className="fixed inset-0 z-50 bg-black/65 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
@@ -81,7 +81,7 @@ export default function ImpactCertificateModal({ isOpen, onClose, summary, busin
               <div>
                 <span className="text-gray-500 uppercase font-semibold">Date of Transfer:</span>{" "}
                 <span className="font-bold text-gray-900">
-                  {donation.created_at ? donation.created_at.slice(0, 10) : today}
+                  {donation.created_at ? String(donation.created_at).slice(0, 10) : today}
                 </span>
               </div>
               <div>

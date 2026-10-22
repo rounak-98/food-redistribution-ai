@@ -1,5 +1,6 @@
 import { NavLink, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { getStoredJSON } from "../../utils/storage";
 
 export default function AdminSidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) {
   const { t } = useTranslation();
@@ -13,7 +14,7 @@ export default function AdminSidebar({ collapsed, setCollapsed, mobileOpen, setM
     { id: "deliveries", name: t("nav.transport_dispatches"), path: "/dashboard/admin?tab=deliveries", icon: "🚚" },
   ];
 
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const user = getStoredJSON("user", {});
 
   const handleLogout = () => {
     localStorage.removeItem("token");

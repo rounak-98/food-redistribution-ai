@@ -3,9 +3,10 @@ import { getBusinessDonations } from "../services/donationService";
 import DashboardLayout from "../components/dashboard/DashboardLayout";
 import { useNavigate } from "react-router-dom";
 import ImpactCertificateModal from "../components/dashboard/ImpactCertificateModal";
+import { getStoredJSON } from "../utils/storage";
 
 export default function DonationHistoryPage() {
-  const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+  const storedUser = getStoredJSON("user", {});
   const businessId = storedUser?.business?.id;
 
   const [donations, setDonations] = useState([]);
@@ -17,12 +18,7 @@ export default function DonationHistoryPage() {
 
   const navigate = useNavigate();
 
-  let business = storedUser?.business;
-  if (!business) {
-    try {
-      business = JSON.parse(localStorage.getItem("profile") || "null");
-    } catch (e) {}
-  }
+  const business = storedUser?.business || getStoredJSON("profile", null);
 
   useEffect(() => {
     loadDonations();
@@ -32,18 +28,23 @@ export default function DonationHistoryPage() {
     try {
       setLoading(true);
       const data = await getBusinessDonations(businessId);
-      setDonations(data || []);
+      setDonations(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Error loading business donations:", err);
+      setDonations([]);
     } finally {
       setLoading(false);
     }
   }
 
-  const filtered = donations.filter((donation) => {
-    const matchesSearch =
-      donation.food_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      donation.food_category.toLowerCase().includes(searchQuery.toLowerCase());
+  const safeDonations = Array.isArray(donations) ? donations : [];
+
+  const filtered = safeDonations.filter((donation) => {
+    if (!donation) return false;
+    const fName = String(donation.food_name || "").toLowerCase();
+    const fCat = String(donation.food_category || "").toLowerCase();
+    const q = String(searchQuery || "").toLowerCase();
+    const matchesSearch = fName.includes(q) || fCat.includes(q);
 
     if (activeTab === "all") return matchesSearch;
     if (activeTab === "Accepted") return matchesSearch && (donation.status === "Accepted" || donation.status === "In Transit");
@@ -52,26 +53,28 @@ export default function DonationHistoryPage() {
 
   // Calculate dynamic impact from actual quantities
   let totalKg = 0;
-  donations.forEach((d) => {
-    const nums = (d.quantity || "").match(/\d+/g);
+  safeDonations.forEach((d) => {
+    if (!d) return;
+    const qStr = String(d.quantity || "");
+    const nums = qStr.match(/\d+/g);
     const val = nums ? parseInt(nums[0], 10) : 10;
-    if ((d.quantity || "").toLowerCase().includes("portion") || (d.quantity || "").toLowerCase().includes("meal")) {
+    if (qStr.toLowerCase().includes("portion") || qStr.toLowerCase().includes("meal")) {
       totalKg += Math.round(val * 0.4);
     } else {
       totalKg += val;
     }
   });
-  if (totalKg === 0 && donations.length > 0) {
-    totalKg = donations.length * 15;
+  if (totalKg === 0 && safeDonations.length > 0) {
+    totalKg = safeDonations.length * 15;
   }
 
-  const totalMeals = Math.round(totalKg / 0.4) || (donations.length * 15);
-  const totalTaxCredits = Math.round(totalKg * 140 * 0.25) || (donations.length * 450);
-  const activeCount = donations.filter((d) => d.status === "Accepted" || d.status === "In Transit").length;
+  const totalMeals = Math.round(totalKg / 0.4) || (safeDonations.length * 15);
+  const totalTaxCredits = Math.round(totalKg * 140 * 0.25) || (safeDonations.length * 450);
+  const activeCount = safeDonations.filter((d) => d && (d.status === "Accepted" || d.status === "In Transit")).length;
 
   const dynamicSummary = {
-    total_donations: donations.length,
-    completed_pickups: donations.filter((d) => d.status === "Completed" || d.status === "Delivered").length,
+    total_donations: safeDonations.length,
+    completed_pickups: safeDonations.filter((d) => d && (d.status === "Completed" || d.status === "Delivered")).length,
     food_saved_kg: totalKg,
     co2_saved_kg: Math.round(totalKg * 2.5),
     tax_deduction_estimate_inr: totalTaxCredits,

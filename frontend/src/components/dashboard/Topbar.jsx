@@ -2,11 +2,12 @@ import LanguageSelector from "../LanguageSelector";
 import PWAInstallPrompt from "../PWAInstallPrompt";
 import { useTranslation } from "react-i18next";
 import { FaBars } from "react-icons/fa";
+import { getStoredJSON } from "../../utils/storage";
 
 export default function Topbar({ onToggleMobileMenu }) {
   const { t } = useTranslation();
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
-  const profile = JSON.parse(localStorage.getItem("profile") || "{}");
+  const user = getStoredJSON("user", {});
+  const profile = getStoredJSON("profile", {});
 
   const role = user?.role?.toLowerCase();
 
