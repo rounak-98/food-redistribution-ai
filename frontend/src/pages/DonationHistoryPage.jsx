@@ -13,8 +13,16 @@ export default function DonationHistoryPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all"); // "all", "Available", "Accepted", "Completed"
   const [isCertificateOpen, setIsCertificateOpen] = useState(false);
+  const [selectedDonation, setSelectedDonation] = useState(null);
 
   const navigate = useNavigate();
+
+  let business = storedUser?.business;
+  if (!business) {
+    try {
+      business = JSON.parse(localStorage.getItem("profile") || "null");
+    } catch (e) {}
+  }
 
   useEffect(() => {
     loadDonations();
@@ -42,9 +50,33 @@ export default function DonationHistoryPage() {
     return matchesSearch && donation.status === activeTab;
   });
 
-  const totalMeals = donations.length * 15;
-  const totalTaxCredits = donations.length * 450;
+  // Calculate dynamic impact from actual quantities
+  let totalKg = 0;
+  donations.forEach((d) => {
+    const nums = (d.quantity || "").match(/\d+/g);
+    const val = nums ? parseInt(nums[0], 10) : 10;
+    if ((d.quantity || "").toLowerCase().includes("portion") || (d.quantity || "").toLowerCase().includes("meal")) {
+      totalKg += Math.round(val * 0.4);
+    } else {
+      totalKg += val;
+    }
+  });
+  if (totalKg === 0 && donations.length > 0) {
+    totalKg = donations.length * 15;
+  }
+
+  const totalMeals = Math.round(totalKg / 0.4) || (donations.length * 15);
+  const totalTaxCredits = Math.round(totalKg * 140 * 0.25) || (donations.length * 450);
   const activeCount = donations.filter((d) => d.status === "Accepted" || d.status === "In Transit").length;
+
+  const dynamicSummary = {
+    total_donations: donations.length,
+    completed_pickups: donations.filter((d) => d.status === "Completed" || d.status === "Delivered").length,
+    food_saved_kg: totalKg,
+    co2_saved_kg: Math.round(totalKg * 2.5),
+    tax_deduction_estimate_inr: totalTaxCredits,
+    meals_provided: totalMeals,
+  };
 
   return (
     <DashboardLayout>
@@ -62,7 +94,10 @@ export default function DonationHistoryPage() {
 
           <div className="flex items-center gap-3 self-start md:self-auto">
             <button
-              onClick={() => setIsCertificateOpen(true)}
+              onClick={() => {
+                setSelectedDonation(null);
+                setIsCertificateOpen(true);
+              }}
               className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow transition flex items-center gap-1.5"
             >
               📄 Printable ESG & Tax Certificate
@@ -187,7 +222,10 @@ export default function DonationHistoryPage() {
                       </td>
                       <td className="p-4 text-center">
                         <button
-                          onClick={() => setIsCertificateOpen(true)}
+                          onClick={() => {
+                            setSelectedDonation(donation);
+                            setIsCertificateOpen(true);
+                          }}
                           className="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-xs px-3 py-1.5 rounded-lg transition border border-emerald-200"
                         >
                           📄 80G Receipt
@@ -204,7 +242,16 @@ export default function DonationHistoryPage() {
 
       {/* Impact Certificate Modal */}
       {isCertificateOpen && (
-        <ImpactCertificateModal isOpen={isCertificateOpen} onClose={() => setIsCertificateOpen(false)} />
+        <ImpactCertificateModal
+          isOpen={isCertificateOpen}
+          onClose={() => {
+            setIsCertificateOpen(false);
+            setSelectedDonation(null);
+          }}
+          donation={selectedDonation}
+          business={business}
+          summary={dynamicSummary}
+        />
       )}
     </DashboardLayout>
   );

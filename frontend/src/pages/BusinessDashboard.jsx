@@ -342,17 +342,22 @@ export default function BusinessDashboard() {
       <ImpactCertificateModal
         isOpen={isCertificateOpen}
         onClose={() => setIsCertificateOpen(false)}
-        summary={summary || {
-          total_donations: localDonationsCount,
-          available_donations: localAvailableCount,
-          inventory_items: localInventoryCount,
-          completed_pickups: localCompletedCount,
-          food_saved_kg: localFoodSavedKg,
-          waste_prevented_kg: Math.round(localFoodSavedKg * 0.85),
-          co2_saved_kg: Math.round(localFoodSavedKg * 2.5),
-          financial_savings_inr: localFoodSavedKg * 140,
-          tax_deduction_estimate_inr: Math.round(localFoodSavedKg * 140 * 0.25),
-        }}
+        summary={
+          summary && summary.food_saved_kg
+            ? { ...summary, meals_provided: summary.meals_provided || (summary.completed_pickups * 50) || 30 }
+            : {
+                total_donations: localDonationsCount,
+                available_donations: localAvailableCount,
+                inventory_items: localInventoryCount,
+                completed_pickups: localCompletedCount,
+                food_saved_kg: localFoodSavedKg,
+                waste_prevented_kg: Math.round(localFoodSavedKg * 0.85),
+                co2_saved_kg: Math.round(localFoodSavedKg * 2.5),
+                financial_savings_inr: localFoodSavedKg * 140,
+                tax_deduction_estimate_inr: Math.round(localFoodSavedKg * 140 * 0.25),
+                meals_provided: (localCompletedCount * 50) + (localDonationsCount * 15) || 30
+              }
+        }
         business={business}
       />
     </DashboardLayout>
