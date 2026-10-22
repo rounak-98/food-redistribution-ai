@@ -299,36 +299,91 @@ def seed_core_accounts(db: Session):
             db.commit()
 
     # Ensure all business accounts have their 105 inventory catalog items preserved and synced
+    import os
+    import json
     from app.models.inventory import Inventory
-    source_items = db.query(Inventory).filter(Inventory.business_id.in_([2, 5])).all()
+    from app.models.donation import Donation
+
+    seed_inv_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), "database", "seed_inventory.json")
+    seed_don_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), "database", "seed_donations.json")
+
+    # Load inventory from database or seed file
+    catalog_items = []
+    source_items = db.query(Inventory).all()
     if source_items:
         seen = {}
-        unique_items = []
         for it in source_items:
             if it.product_name not in seen:
                 seen[it.product_name] = True
-                unique_items.append(it)
+                catalog_items.append({
+                    "product_name": it.product_name,
+                    "category": it.category,
+                    "quantity": it.quantity,
+                    "unit": it.unit,
+                    "barcode": it.barcode,
+                    "manufacturing_date": it.manufacturing_date,
+                    "expiry_date": it.expiry_date,
+                    "purchase_date": it.purchase_date,
+                    "supplier": it.supplier,
+                    "storage_location": it.storage_location,
+                    "image_url": it.image_url,
+                    "status": it.status
+                })
+    elif os.path.exists(seed_inv_file):
+        try:
+            with open(seed_inv_file, "r", encoding="utf-8") as f:
+                catalog_items = json.load(f)
+        except Exception as e:
+            print("[WARN] Error loading seed_inventory.json:", e)
 
-        for b in db.query(Business).all():
-            b_count = db.query(Inventory).filter(Inventory.business_id == b.id).count()
-            if b_count == 0:
-                for item in unique_items:
-                    db.add(Inventory(
+    for b in db.query(Business).all():
+        b_count = db.query(Inventory).filter(Inventory.business_id == b.id).count()
+        if b_count == 0 and catalog_items:
+            for item in catalog_items:
+                db.add(Inventory(
+                    business_id=b.id,
+                    product_name=item["product_name"],
+                    category=item["category"],
+                    quantity=item["quantity"],
+                    unit=item["unit"],
+                    barcode=item.get("barcode"),
+                    manufacturing_date=item.get("manufacturing_date"),
+                    expiry_date=item["expiry_date"],
+                    purchase_date=item.get("purchase_date"),
+                    supplier=item.get("supplier"),
+                    storage_location=item.get("storage_location"),
+                    image_url=item.get("image_url"),
+                    status=item.get("status", "Fresh")
+                ))
+            db.commit()
+
+    # Load donations from database or seed file
+    for b in db.query(Business).all():
+        don_count = db.query(Donation).filter(Donation.business_id == b.id).count()
+        if don_count == 0 and os.path.exists(seed_don_file):
+            try:
+                with open(seed_don_file, "r", encoding="utf-8") as f:
+                    seed_donations = json.load(f)
+                for d in seed_donations:
+                    db.add(Donation(
                         business_id=b.id,
-                        product_name=item.product_name,
-                        category=item.category,
-                        quantity=item.quantity,
-                        unit=item.unit,
-                        barcode=item.barcode,
-                        manufacturing_date=item.manufacturing_date,
-                        expiry_date=item.expiry_date,
-                        purchase_date=item.purchase_date,
-                        supplier=item.supplier,
-                        storage_location=item.storage_location,
-                        image_url=item.image_url,
-                        status=item.status
+                        donor_type="business",
+                        food_name=d["food_name"],
+                        food_category=d["food_category"],
+                        quantity=d["quantity"],
+                        manufacturing_date=d.get("manufacturing_date"),
+                        expiry_date=d["expiry_date"],
+                        pickup_address=d.get("pickup_address", b.address),
+                        pickup_time=d.get("pickup_time", "Today (Flexible)"),
+                        contact_person=d.get("contact_person", b.owner_name),
+                        phone=d.get("phone", b.phone),
+                        special_instructions=d.get("special_instructions", ""),
+                        image_url=d.get("image_url"),
+                        status=d.get("status", "Available")
                     ))
                 db.commit()
+            except Exception as e:
+                print("[WARN] Error seeding donations:", e)
 
     return True
 
