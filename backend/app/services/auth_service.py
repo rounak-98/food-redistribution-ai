@@ -168,3 +168,127 @@ def login_user(db: Session, email: str, password: str):
         "user": user,
         "profile": profile
     }
+
+
+def seed_core_accounts(db: Session):
+    accounts = [
+        {
+            "role": "admin",
+            "email": "admin@foodbridge.com",
+            "name": "System Administrator",
+            "password": "admin123",
+            "profile_type": None,
+            "profile_data": None
+        },
+        {
+            "role": "business",
+            "email": "restaurant@foodbridge.com",
+            "name": "Grand Heritage Kitchen",
+            "password": "biz123",
+            "profile_type": Business,
+            "profile_data": {
+                "business_name": "Grand Heritage Kitchen",
+                "business_type": "Restaurant",
+                "owner_name": "Rounak Pathak",
+                "fssai_number": "11521034000123",
+                "gst_number": "27AAAAA0000A1Z5",
+                "phone": "9876543210",
+                "address": "JM Road, Shivaji Nagar",
+                "city": "Pune",
+                "state": "Maharashtra",
+                "pincode": "411005",
+                "latitude": "18.5204",
+                "longitude": "73.8567",
+            }
+        },
+        {
+            "role": "ngo",
+            "email": "ngo@foodbridge.com",
+            "name": "Asha Food Relief Trust",
+            "password": "ngo123",
+            "profile_type": NGO,
+            "profile_data": {
+                "ngo_name": "Asha Food Relief Trust",
+                "registration_number": "MH-PUN-2021-098",
+                "contact_person": "Priya Sharma",
+                "phone": "9823456789",
+                "email": "ngo@foodbridge.com",
+                "address": "Kothrud Depot Road",
+                "city": "Pune",
+                "state": "Maharashtra",
+                "pincode": "411038",
+                "latitude": "18.5074",
+                "longitude": "73.8077",
+            }
+        },
+        {
+            "role": "volunteer",
+            "email": "rider@foodbridge.com",
+            "name": "Rahul Deshmukh",
+            "password": "rider123",
+            "profile_type": Volunteer,
+            "profile_data": {
+                "full_name": "Rahul Deshmukh",
+                "phone": "9811223344",
+                "vehicle_type": "Motorcycle",
+                "vehicle_number": "MH-12-AB-1234",
+                "city": "Pune",
+                "state": "Maharashtra",
+                "pincode": "411005",
+                "latitude": "18.5204",
+                "longitude": "73.8567",
+                "is_online": True,
+            }
+        },
+        {
+            "role": "individual",
+            "email": "individual@foodbridge.com",
+            "name": "Amit Verma",
+            "password": "ind123",
+            "profile_type": Individual,
+            "profile_data": {
+                "full_name": "Amit Verma",
+                "phone": "9877001122",
+                "address": "Viman Nagar, Lane 2",
+                "city": "Pune",
+                "state": "Maharashtra",
+                "pincode": "411014",
+                "latitude": "18.5679",
+                "longitude": "73.9143",
+            }
+        },
+    ]
+
+    for acc in accounts:
+        user = db.query(User).filter(User.email == acc["email"]).first()
+        if not user:
+            user = User(
+                name=acc["name"],
+                email=acc["email"],
+                password_hash=hash_password(acc["password"]),
+                role=acc["role"]
+            )
+            db.add(user)
+            db.commit()
+            db.refresh(user)
+        else:
+            user.role = acc["role"]
+            user.password_hash = hash_password(acc["password"])
+            db.commit()
+
+        if acc["profile_type"] and acc["profile_data"]:
+            profile = db.query(acc["profile_type"]).filter(acc["profile_type"].user_id == user.id).first()
+            if not profile:
+                profile = acc["profile_type"](user_id=user.id, **acc["profile_data"])
+                db.add(profile)
+                db.commit()
+
+    # Legacy individual support for user@gmail.com
+    legacy_user = db.query(User).filter(User.email == "user@gmail.com").first()
+    if legacy_user:
+        legacy_user.password_hash = hash_password("ind123")
+        legacy_user.role = "individual"
+        db.commit()
+
+    return True
+

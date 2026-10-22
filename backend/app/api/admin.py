@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from typing import Optional
 
 from app.database.database import get_db
@@ -19,7 +20,7 @@ router = APIRouter(
 
 
 def verify_admin(current_user: User = Depends(get_current_user)):
-    if current_user.role.lower() != "admin":
+    if (current_user.role or "").lower() != "admin":
         raise HTTPException(status_code=403, detail="Admin access required")
     return current_user
 
@@ -30,10 +31,10 @@ def get_admin_dashboard_stats(
     db: Session = Depends(get_db)
 ):
     total_users = db.query(User).count()
-    business_count = db.query(User).filter(User.role == "business").count()
-    ngo_count = db.query(User).filter(User.role == "ngo").count()
-    individual_count = db.query(User).filter(User.role == "individual").count()
-    volunteer_count = db.query(User).filter(User.role == "volunteer").count()
+    business_count = db.query(User).filter(func.lower(User.role) == "business").count()
+    ngo_count = db.query(User).filter(func.lower(User.role) == "ngo").count()
+    individual_count = db.query(User).filter(func.lower(User.role) == "individual").count()
+    volunteer_count = db.query(User).filter(func.lower(User.role) == "volunteer").count()
 
     total_donations = db.query(Donation).count()
     completed_donations = db.query(Donation).filter(Donation.status == "Completed").count()
@@ -68,7 +69,8 @@ def get_all_users(
     query = db.query(User)
 
     if role and role.lower() != "all":
-        query = query.filter(User.role == role.lower())
+        query = query.filter(func.lower(User.role) == role.lower())
+
 
     if search:
         search_pattern = f"%{search}%"

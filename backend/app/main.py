@@ -57,30 +57,22 @@ app.include_router(admin_router)
 app.include_router(ml_router)
 
 
-# Startup initialization for default admin account
+# Startup initialization for all default core role accounts
 @app.on_event("startup")
-def init_admin():
+def init_default_accounts():
     from app.database.database import SessionLocal
-    from app.auth.security import hash_password
+    from app.services.auth_service import seed_core_accounts
 
     db = SessionLocal()
     try:
-        admin_user = db.query(User).filter(User.role == "admin").first()
-        if not admin_user:
-            admin_user = User(
-                name="System Administrator",
-                email="admin@foodbridge.com",
-                password_hash=hash_password("admin123"),
-                role="admin"
-            )
-            db.add(admin_user)
-            db.commit()
-            print("[INFO] Default admin user verified.")
+        seed_core_accounts(db)
+        print("[INFO] Default core role accounts verified and seeded successfully.")
     except Exception as e:
         db.rollback()
-        print("[INIT ADMIN ERROR]:", e)
+        print("[INIT CORE ACCOUNTS ERROR]:", e)
     finally:
         db.close()
+
 
 
 @app.get("/")

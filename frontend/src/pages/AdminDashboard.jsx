@@ -130,22 +130,29 @@ export default function AdminDashboard() {
     }
   };
 
+  const totalRoleCount =
+    (stats.business_count || 0) +
+    (stats.ngo_count || 0) +
+    (stats.individual_count || 0) +
+    (stats.volunteer_count || 0);
+
   const userRoleChartData = {
     labels: ["Food Businesses", "NGO Partners", "Individual Donors", "Transport Riders"],
     datasets: [
       {
         label: "Registered Users",
         data: [
-          stats.business_count || 4,
-          stats.ngo_count || 3,
-          stats.individual_count || 1,
-          stats.volunteer_count || 2,
+          stats.business_count || 0,
+          stats.ngo_count || 0,
+          stats.individual_count || 0,
+          stats.volunteer_count || 0,
         ],
         backgroundColor: ["#2563eb", "#059669", "#7c3aed", "#d97706"],
         borderWidth: 2,
       },
     ],
   };
+
 
   const volumeTrendChartData = {
     labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"],
@@ -252,7 +259,15 @@ export default function AdminDashboard() {
             <h3 className="text-lg font-bold text-gray-900 mb-2">📊 Platform User & Role Proportion</h3>
             <p className="text-xs text-gray-500 mb-6">Distribution across Food Businesses, NGOs, Households & Riders</p>
             <div className="h-64 flex justify-center items-center">
-              <Doughnut data={userRoleChartData} options={{ maintainAspectRatio: false }} />
+              {totalRoleCount > 0 ? (
+                <Doughnut data={userRoleChartData} options={{ maintainAspectRatio: false }} />
+              ) : (
+                <div className="text-center text-gray-400 py-8">
+                  <span className="text-3xl block mb-2">👥</span>
+                  <p className="text-xs font-bold text-gray-500">No Non-Admin Users Registered Yet</p>
+                  <p className="text-[11px] text-gray-400 mt-1">Platform consists of System Administrator only</p>
+                </div>
+              )}
             </div>
           </div>
 

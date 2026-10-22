@@ -45,7 +45,10 @@ def login(
         )
         
 
-        if result["user"].role == "business":
+        user_role = (result["user"].role or "").lower()
+
+        if user_role == "business":
+            profile = result.get("profile")
             return {
                 "message": "Login successful",
                 "access_token": result["access_token"],
@@ -57,16 +60,17 @@ def login(
                     "role": result["user"].role,
                 },
                 "business": {
-                    "id": result["profile"].id,
-                    "business_name": result["profile"].business_name,
-                    "owner_name": result["profile"].owner_name,
-                    "phone": result["profile"].phone,
-                    "city": result["profile"].city,
-                    "state": result["profile"].state,
+                    "id": profile.id if profile else None,
+                    "business_name": profile.business_name if profile else result["user"].name,
+                    "owner_name": profile.owner_name if profile else result["user"].name,
+                    "phone": profile.phone if profile else "",
+                    "city": profile.city if profile else "",
+                    "state": profile.state if profile else "",
                 }
             }
 
-        elif result["user"].role == "ngo":
+        elif user_role == "ngo":
+            profile = result.get("profile")
             return {
                 "message": "Login successful",
                 "access_token": result["access_token"],
@@ -78,16 +82,17 @@ def login(
                     "role": result["user"].role,
                 },
                 "ngo": {
-                    "id": result["profile"].id,
-                    "ngo_name": result["profile"].ngo_name,
-                    "contact_person": result["profile"].contact_person,
-                    "phone": result["profile"].phone,
-                    "city": result["profile"].city,
-                    "state": result["profile"].state,
+                    "id": profile.id if profile else None,
+                    "ngo_name": profile.ngo_name if profile else result["user"].name,
+                    "contact_person": profile.contact_person if profile else result["user"].name,
+                    "phone": profile.phone if profile else "",
+                    "city": profile.city if profile else "",
+                    "state": profile.state if profile else "",
                 }
             }
 
-        elif result["user"].role == "individual":
+        elif user_role == "individual":
+            profile = result.get("profile")
             return {
                 "message": "Login successful",
                 "access_token": result["access_token"],
@@ -99,15 +104,16 @@ def login(
                     "role": result["user"].role,
                 },
                 "individual": {
-                    "id": result["profile"].id if result["profile"] else None,
-                    "full_name": result["profile"].full_name if result["profile"] else result["user"].name,
-                    "phone": result["profile"].phone if result["profile"] else "",
-                    "city": result["profile"].city if result["profile"] else "",
-                    "state": result["profile"].state if result["profile"] else "",
+                    "id": profile.id if profile else None,
+                    "full_name": profile.full_name if profile else result["user"].name,
+                    "phone": profile.phone if profile else "",
+                    "city": profile.city if profile else "",
+                    "state": profile.state if profile else "",
                 }
             }
 
-        elif result["user"].role == "volunteer":
+        elif user_role == "volunteer":
+            profile = result.get("profile")
             return {
                 "message": "Login successful",
                 "access_token": result["access_token"],
@@ -119,16 +125,16 @@ def login(
                     "role": result["user"].role,
                 },
                 "volunteer": {
-                    "id": result["profile"].id if result["profile"] else None,
-                    "full_name": result["profile"].full_name if result["profile"] else result["user"].name,
-                    "vehicle_type": result["profile"].vehicle_type if result["profile"] else "Bike",
-                    "phone": result["profile"].phone if result["profile"] else "",
-                    "city": result["profile"].city if result["profile"] else "",
-                    "is_online": result["profile"].is_online if result["profile"] else True,
+                    "id": profile.id if profile else None,
+                    "full_name": profile.full_name if profile else result["user"].name,
+                    "vehicle_type": profile.vehicle_type if profile else "Bike",
+                    "phone": profile.phone if profile else "",
+                    "city": profile.city if profile else "",
+                    "is_online": profile.is_online if profile else True,
                 }
             }
 
-        elif result["user"].role == "admin":
+        elif user_role == "admin":
             return {
                 "message": "Login successful",
                 "access_token": result["access_token"],
@@ -146,8 +152,6 @@ def login(
                 }
             }
 
-
-
         else:
             return {
                 "message": "Login successful",
@@ -161,11 +165,77 @@ def login(
                 }
             }
 
-
     except ValueError as e:
         raise HTTPException(
             status_code=401,
             detail=str(e)
         )
+
+
+@router.get("/demo-accounts")
+def get_demo_accounts():
+    return {
+        "accounts": [
+            {
+                "role": "business",
+                "label": "Business Donor",
+                "organization": "Grand Heritage Kitchen",
+                "email": "restaurant@foodbridge.com",
+                "password": "biz123",
+                "badge": "Restaurant / Kitchen",
+                "description": "Post excess food donations, manage inventory & expiry alerts"
+            },
+            {
+                "role": "ngo",
+                "label": "Verified NGO",
+                "organization": "Asha Food Relief Trust",
+                "email": "ngo@foodbridge.com",
+                "password": "ngo123",
+                "badge": "Relief & Distribution",
+                "description": "Claim surplus donations, track hunger relief & log distributions"
+            },
+            {
+                "role": "volunteer",
+                "label": "Volunteer Rider",
+                "organization": "Rahul Deshmukh (Motorcycle)",
+                "email": "rider@foodbridge.com",
+                "password": "rider123",
+                "badge": "Express Delivery",
+                "description": "Accept active pickups, route navigation & verify delivery OTP"
+            },
+            {
+                "role": "individual",
+                "label": "Individual Donor",
+                "organization": "Amit Verma",
+                "email": "individual@foodbridge.com",
+                "password": "ind123",
+                "badge": "Community Member",
+                "description": "Donate home surplus food & view neighbourhood impact"
+            },
+            {
+                "role": "admin",
+                "label": "Super Admin",
+                "organization": "FoodBridge Operations Center",
+                "email": "admin@foodbridge.com",
+                "password": "admin123",
+                "badge": "System Master",
+                "description": "System telemetry, audit ledgers, analytics & user management"
+            }
+        ]
+    }
+
+
+@router.post("/seed-demo-accounts")
+def trigger_seed_demo_accounts(db: Session = Depends(get_db)):
+    from app.services.auth_service import seed_core_accounts
+    try:
+        seed_core_accounts(db)
+        return {
+            "status": "success",
+            "message": "All 5 core role accounts successfully verified and seeded."
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
     
 

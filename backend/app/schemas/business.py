@@ -20,7 +20,12 @@ class RegisterRequest(BaseModel):
     registration_number: str | None = None
     contact_person: str | None = None
 
+    # Volunteer Fields
+    vehicle_type: str | None = None
+    vehicle_number: str | None = None
+
     # Common Contact Information
+
     phone: str
     address: str | None = None
     city: str
