@@ -10,6 +10,7 @@ def create_donation(db: Session, data):
 
     donation = Donation(
         business_id=data.business_id,
+        donor_type="business",
         food_name=data.food_name,
         food_category=data.food_category,
         quantity=data.quantity,
@@ -45,7 +46,11 @@ def create_donation(db: Session, data):
 def get_business_donations(db: Session, business_id: int):
     donations = (
         db.query(Donation)
-        .filter(Donation.business_id == business_id)
+        .filter(
+            Donation.business_id == business_id,
+            (Donation.donor_type != "individual") | (Donation.donor_type.is_(None)),
+            Donation.food_category != "Home Cooked Meal"
+        )
         .order_by(Donation.created_at.desc())
         .all()
     )
@@ -89,17 +94,22 @@ def get_business_donations(db: Session, business_id: int):
     return result
 
 def get_dashboard_stats(db: Session, business_id: int):
+    base_filter = [
+        Donation.business_id == business_id,
+        (Donation.donor_type != "individual") | (Donation.donor_type.is_(None)),
+        Donation.food_category != "Home Cooked Meal"
+    ]
 
     total = (
         db.query(Donation)
-        .filter(Donation.business_id == business_id)
+        .filter(*base_filter)
         .count()
     )
 
     available = (
         db.query(Donation)
         .filter(
-            Donation.business_id == business_id,
+            *base_filter,
             Donation.status == "Available"
         )
         .count()
@@ -108,7 +118,7 @@ def get_dashboard_stats(db: Session, business_id: int):
     completed = (
         db.query(Donation)
         .filter(
-            Donation.business_id == business_id,
+            *base_filter,
             Donation.status == "Completed"
         )
         .count()

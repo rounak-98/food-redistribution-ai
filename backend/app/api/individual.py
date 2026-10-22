@@ -36,11 +36,13 @@ def get_individual_dashboard(
 ):
     indiv = db.query(Individual).filter(Individual.user_id == current_user.id).first()
 
-    # User's donations (using phone or user association)
+    # User's donations (using individual_id, phone, or name)
     user_donations = []
     if indiv:
         user_donations = db.query(Donation).filter(
-            Donation.phone == indiv.phone
+            (Donation.individual_id == indiv.id) |
+            (Donation.phone == indiv.phone) |
+            ((Donation.contact_person == indiv.full_name) & (Donation.donor_type == "individual"))
         ).order_by(Donation.created_at.desc()).all()
 
     total_donations_posted = len(user_donations)
@@ -124,13 +126,10 @@ def post_individual_donation(
     phone_no = data.phone or (indiv.phone if indiv else "N/A")
     contact = indiv.full_name if indiv else current_user.name
 
-    # Create dummy business record or link directly
-    from app.models.business import Business
-    default_business = db.query(Business).first()
-    business_id = default_business.id if default_business else 1
-
     donation = Donation(
-        business_id=business_id,
+        business_id=None,
+        individual_id=indiv.id if indiv else None,
+        donor_type="individual",
         food_name=data.food_name,
         food_category=data.food_category or "Household Surplus",
         quantity=data.quantity,

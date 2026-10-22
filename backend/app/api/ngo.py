@@ -8,6 +8,7 @@ from app.models.donation import Donation
 from app.models.business import Business
 from app.models.user import User
 from app.models.ngo import NGO
+from app.models.individual import Individual
 from app.models.delivery import DeliveryTask
 from app.models.volunteer import Volunteer
 from app.auth.security import get_current_user
@@ -77,7 +78,7 @@ def get_ngo_dashboard_stats(
     # Available donations query
     available_donations_query = (
         db.query(Donation, Business)
-        .join(Business, Donation.business_id == Business.id)
+        .outerjoin(Business, Donation.business_id == Business.id)
         .filter(Donation.status == "Available")
         .all()
     )
@@ -120,17 +121,25 @@ def get_ngo_dashboard_stats(
     # Format recent available donations with distance calculation
     recent_available = []
     for donation, business in available_donations_query:
+        donor_lat = business.latitude if business else None
+        donor_lon = business.longitude if business else None
+        if not donor_lat and donation.individual_id:
+            indiv = db.query(Individual).filter(Individual.id == donation.individual_id).first()
+            if indiv:
+                donor_lat, donor_lon = indiv.latitude, indiv.longitude
+
         dist = calculate_distance(
             ngo.latitude, ngo.longitude,
-            business.latitude, business.longitude
+            donor_lat, donor_lon
         )
+        b_name = business.business_name if business else (f"{donation.contact_person} (Individual Donor)" if donation.contact_person else "Individual Donor")
         recent_available.append({
             "id": donation.id,
             "food_name": donation.food_name,
             "food_category": donation.food_category,
             "quantity": donation.quantity,
             "expiry_date": donation.expiry_date,
-            "business_name": business.business_name,
+            "business_name": b_name,
             "distance_km": dist
         })
 
@@ -176,17 +185,25 @@ def get_available_donations(
 
     results = (
         db.query(Donation, Business)
-        .join(Business, Donation.business_id == Business.id)
+        .outerjoin(Business, Donation.business_id == Business.id)
         .filter(Donation.status == "Available")
         .all()
     )
 
     response = []
     for donation, business in results:
+        donor_lat = business.latitude if business else None
+        donor_lon = business.longitude if business else None
+        if not donor_lat and donation.individual_id:
+            indiv = db.query(Individual).filter(Individual.id == donation.individual_id).first()
+            if indiv:
+                donor_lat, donor_lon = indiv.latitude, indiv.longitude
+
         distance = calculate_distance(
             ngo.latitude, ngo.longitude,
-            business.latitude, business.longitude
+            donor_lat, donor_lon
         )
+        b_name = business.business_name if business else (f"{donation.contact_person} (Individual Donor)" if donation.contact_person else "Individual Donor")
 
         response.append({
             "id": donation.id,
@@ -196,7 +213,7 @@ def get_available_donations(
             "expiry_date": donation.expiry_date,
             "pickup_address": donation.pickup_address,
             "status": donation.status,
-            "business_name": business.business_name,
+            "business_name": b_name,
             "distance_km": distance
         })
 
@@ -218,7 +235,7 @@ def get_my_accepted_donations(
 
     results = (
         db.query(Donation, Business, DeliveryTask, Volunteer)
-        .join(Business, Donation.business_id == Business.id)
+        .outerjoin(Business, Donation.business_id == Business.id)
         .outerjoin(DeliveryTask, Donation.id == DeliveryTask.donation_id)
         .outerjoin(Volunteer, DeliveryTask.volunteer_id == Volunteer.id)
         .filter(
@@ -246,6 +263,9 @@ def get_my_accepted_donations(
                 "is_online": volunteer.is_online
             }
 
+        b_name = business.business_name if business else (f"{donation.contact_person} (Individual Donor)" if donation.contact_person else "Individual Donor")
+        b_phone = business.phone if business else donation.phone
+
         response.append({
             "id": donation.id,
             "food_name": donation.food_name,
@@ -260,8 +280,8 @@ def get_my_accepted_donations(
             "delivery_otp": delivery_otp,
             "delivery_otp_verified": bool(task.delivery_otp_verified) if task else False,
             "business": {
-                "business_name": business.business_name,
-                "phone": business.phone
+                "business_name": b_name,
+                "phone": b_phone
             },
             "rider": rider_info
         })
@@ -280,7 +300,7 @@ def get_ngo_history(
 
     results = (
         db.query(Donation, Business)
-        .join(Business, Donation.business_id == Business.id)
+        .outerjoin(Business, Donation.business_id == Business.id)
         .filter(
             Donation.accepted_by_ngo_id == ngo.id,
             Donation.status.in_(["Completed", "Delivered"])
@@ -291,6 +311,8 @@ def get_ngo_history(
 
     history = []
     for donation, business in results:
+        b_name = business.business_name if business else (f"{donation.contact_person} (Individual Donor)" if donation.contact_person else "Individual Donor")
+        b_phone = business.phone if business else donation.phone
         history.append({
             "id": donation.id,
             "food_name": donation.food_name,
@@ -300,8 +322,8 @@ def get_ngo_history(
             "pickup_address": donation.pickup_address,
             "pickup_time": donation.pickup_time,
             "status": donation.status,
-            "business_name": business.business_name,
-            "business_phone": business.phone,
+            "business_name": b_name,
+            "business_phone": b_phone,
             "created_at": donation.created_at.strftime("%Y-%m-%d %H:%M") if donation.created_at else "N/A"
         })
 
@@ -315,7 +337,7 @@ def get_donation_details(
 ):
     result = (
         db.query(Donation, Business)
-        .join(Business, Donation.business_id == Business.id)
+        .outerjoin(Business, Donation.business_id == Business.id)
         .filter(Donation.id == donation_id)
         .first()
     )
@@ -324,6 +346,7 @@ def get_donation_details(
         raise HTTPException(status_code=404, detail="Donation not found")
 
     donation, business = result
+    b_name = business.business_name if business else (f"{donation.contact_person} (Individual Donor)" if donation.contact_person else "Individual Donor")
 
     return {
         "id": donation.id,
@@ -339,7 +362,7 @@ def get_donation_details(
         "special_instructions": donation.special_instructions,
         "image_url": donation.image_url,
         "status": donation.status,
-        "business_name": business.business_name
+        "business_name": b_name
     }
 
 

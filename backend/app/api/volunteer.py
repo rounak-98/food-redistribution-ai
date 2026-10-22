@@ -9,6 +9,7 @@ from app.models.user import User
 from app.models.volunteer import Volunteer
 from app.models.donation import Donation
 from app.models.business import Business
+from app.models.individual import Individual
 from app.models.ngo import NGO
 from app.models.delivery import DeliveryTask
 from app.auth.security import get_current_user
@@ -93,7 +94,7 @@ def get_volunteer_dashboard(
         }
 
     # Available unclaimed requests (donations with status == 'Accepted' by NGO waiting for rider)
-    accepted_donations = db.query(Donation, Business, NGO).join(
+    accepted_donations = db.query(Donation, Business, NGO).outerjoin(
         Business, Donation.business_id == Business.id
     ).outerjoin(
         NGO, Donation.accepted_by_ngo_id == NGO.id
@@ -110,21 +111,30 @@ def get_volunteer_dashboard(
         if existing_task and existing_task.status in ["Accepted", "In_Transit", "Delivered"]:
             continue
 
-        pickup_addr = donation.pickup_address or f"{business.address}, {business.city}"
+        donor_name = business.business_name if business else (f"{donation.contact_person} (Individual Donor)" if donation.contact_person else "Individual Donor")
+        pickup_addr = donation.pickup_address or (f"{business.address}, {business.city}" if business else "Donor Address")
+        donor_phone = donation.phone or (business.phone if business else "N/A")
         dropoff_addr = ngo.address if ngo else "Community Center"
         ngo_name = ngo.ngo_name if ngo else "Registered NGO"
         ngo_phone = ngo.phone if ngo else "N/A"
 
-        dist = calculate_distance(vol.latitude, vol.longitude, business.latitude, business.longitude)
+        donor_lat = business.latitude if business else None
+        donor_lon = business.longitude if business else None
+        if not donor_lat and donation.individual_id:
+            indiv = db.query(Individual).filter(Individual.id == donation.individual_id).first()
+            if indiv:
+                donor_lat, donor_lon = indiv.latitude, indiv.longitude
+
+        dist = calculate_distance(vol.latitude, vol.longitude, donor_lat, donor_lon)
 
         request_item = {
             "donation_id": donation.id,
             "food_name": donation.food_name,
             "quantity": donation.quantity,
             "food_category": donation.food_category,
-            "donor_name": business.business_name,
+            "donor_name": donor_name,
             "pickup_address": pickup_addr,
-            "pickup_phone": donation.phone or business.phone,
+            "pickup_phone": donor_phone,
             "dropoff_ngo_name": ngo_name,
             "dropoff_address": dropoff_addr,
             "dropoff_phone": ngo_phone,

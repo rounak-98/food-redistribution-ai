@@ -20,7 +20,18 @@ class Donation(Base):
     business_id = Column(
         Integer,
         ForeignKey("businesses.id"),
-        nullable=False
+        nullable=True
+    )
+
+    individual_id = Column(
+        Integer,
+        ForeignKey("individuals.id"),
+        nullable=True
+    )
+
+    donor_type = Column(
+        String(20),
+        default="business"
     )
 
     accepted_by_ngo_id = Column(
@@ -62,5 +73,7 @@ class Donation(Base):
     )
 
     business = relationship("Business")
-    
+
+    individual = relationship("Individual")
+
     accepted_by_ngo = relationship("NGO")

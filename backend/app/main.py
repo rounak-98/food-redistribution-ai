@@ -57,11 +57,17 @@ app.include_router(admin_router)
 app.include_router(ml_router)
 
 
-# Startup initialization for all default core role accounts
+# Startup initialization for schema migrations and default core role accounts
 @app.on_event("startup")
 def init_default_accounts():
     from app.database.database import SessionLocal
     from app.services.auth_service import seed_core_accounts
+    from app.database.migrate_donations import migrate_donations_schema
+
+    try:
+        migrate_donations_schema()
+    except Exception as e:
+        print("[MIGRATION STARTUP ERROR]:", e)
 
     db = SessionLocal()
     try:
